@@ -4,8 +4,7 @@
 
 
 Know issues:  
-   -  Create an Identity First, because there is a problem in the Reload system. IF you dont create one first, it may get stuck. (need to fix Default identity Initilization)
-   - Identities are not getting saved in the db ( fix identity saving methods ) 
+   - Identity (FIXED) 
 
 
 ## Overview
