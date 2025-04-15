@@ -1,0 +1,67 @@
+Model Routing
+
+
+Copy page
+
+Dynamically route requests to models
+
+OpenRouter provides two options for model routing.
+
+Auto Router
+The Auto Router, a special model ID that you can use to choose between selected high-quality models based on your prompt, powered by NotDiamond.
+
+{
+  "model": "openrouter/auto",
+  ... // Other params
+}
+
+The resulting generation will have model set to the model that was used.
+
+The models parameter
+The models parameter lets you automatically try other models if the primary model’s providers are down, rate-limited, or refuse to reply due to content moderation.
+
+{
+  "models": ["anthropic/claude-3.5-sonnet", "gryphe/mythomax-l2-13b"],
+  ... // Other params
+}
+
+If the model you selected returns an error, OpenRouter will try to use the fallback model instead. If the fallback model is down or returns an error, OpenRouter will return that error.
+
+By default, any error can trigger the use of a fallback model, including context length validation errors, moderation flags for filtered models, rate-limiting, and downtime.
+
+Requests are priced using the model that was ultimately used, which will be returned in the model attribute of the response body.
+
+Using with OpenAI SDK
+To use the models array with the OpenAI SDK, include it in the extra_body parameter. In the example below, gpt-4o will be tried first, and the models array will be tried in order as fallbacks.
+
+
+TypeScript
+
+Python
+
+from openai import OpenAI
+openai_client = OpenAI(
+  base_url="https://openrouter.ai/api/v1",
+  api_key=<OPENROUTER_API_KEY>,
+)
+completion = openai_client.chat.completions.create(
+    model="openai/gpt-4o",
+    extra_body={
+        "models": ["anthropic/claude-3.5-sonnet", "gryphe/mythomax-l2-13b"],
+    },
+    messages=[
+        {
+            "role": "user",
+            "content": "What is the meaning of life?"
+        }
+    ]
+)
+print(completion.choices[0].message.content)
+Was this page helpful?
+Yes
+No
+Previous
+Provider Routing
+
+Route requests to the best provider
+

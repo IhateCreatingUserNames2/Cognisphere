@@ -1,0 +1,63 @@
+Vibe
+
+Orchestrator
+
+Functions as your main control system
+Coordinates all specialized components
+Manages the conversation flow
+Delegates tasks to specialized systems
+Integrates everything into a coherent experience
+
+
+MemoryBlossom
+
+Handles your sophisticated memory architecture
+Manages different memory types (explicit, emotional, flashbulb, liminal, somatic)
+Provides emotion-weighted recall
+Handles memory evolution and transformation
+Supports multi-dimensional indexing
+
+
+NarrativeWeaver
+
+Creates and maintains narrative threads
+Organizes experiences into coherent storylines
+Analyzes narrative arcs
+Tracks story development
+Detects recurring themes
+Generates narrative summaries
+
+Cognisphere
+Show Image
+Show Image
+Cognisphere is a revolutionary SDK that provides sophisticated memory and narrative capabilities for AI applications. It consists of two powerful components:
+
+MemoryBlossom: A psychologically-inspired memory architecture for AI systems
+NarrativeWeaver: A narrative threading system that creates coherent storylines from experiences
+
+Overview
+Modern AI systems suffer from fundamental limitations in how they store, retrieve, and contextualize information. Most solutions employ basic vector databases or simple RAG approaches that fail to capture the nuanced, evolving nature of human memory and narrative.
+Cognisphere addresses these limitations with two complementary systems built on cognitive science principles rather than traditional database architecture.
+Key Components
+MemoryBlossom: Beyond Vector Databases
+MemoryBlossom implements a sophisticated memory architecture inspired by human cognitive models:
+
+Tiered Memory Structure:
+
+Working Memory: Short-term, high-accessibility storage for recent interactions
+Emotional Memory: Experiences weighted by emotional significance
+Deep Memory: Long-term storage with complex associative connections
+Liminal Memory: Threshold space for memory transformation and emergence
+
+
+Emotion-Weighted Recall: Memories are retrieved based not just on semantic similarity but emotional relevance, creating more human-like recall patterns.
+Memory Evolution: Instead of simple decay, memories transform over time, preserving important information while allowing natural evolution.
+Multi-dimensional Indexing: Retrieve memories through semantic, emotional, temporal, and narrative dimensions.
+
+NarrativeWeaver: Creating Storylines from Data
+NarrativeWeaver organizes experiences into coherent storylines with meaningful arcs:
+
+Thread Creation and Management: Automatically identifies thematic connections between events to form narrative threads.
+Narrative Arc Analysis: Tracks story development through phases like introduction, conflict, climax, and resolution.
+Tension and Resolution: Monitors narrative tension and identifies resolution opportunities to create satisfying storylines.
+Theme Detection: Identifies recurring themes across interactions to build coherent narrative identity.
