@@ -1,66 +1,132 @@
-"""# cognisphere_adk/app.py
+"""
+# cognisphere_adk/app.py
 Flask application serving as a Web UI for Cognisphere ADK.
 """
 
 import os
+
 import sys
 import json
+import traceback
 from typing import Dict, Any
 from datetime import datetime
-from flask import Flask, render_template, request, jsonify, Response, stream_with_context
+from flask import Flask, render_template, request, jsonify, Response, stream_with_context, send_from_directory
 import asyncio
+import logging
 import importlib.util
 
-# Import ADK components
-from google.adk.agents import Agent
-from google.adk.models.lite_llm import LiteLlm
-from google.adk.sessions import InMemorySessionService, Session
-from google.adk.runners import Runner
-from google.genai import types
-import litellm
+try:
+    # Import the IdentityStore
+    from data_models.identity_store import IdentityStore
 
-# Import Cognisphere components
-from agents.identity_agent import create_identity_agent
-from agents.memory_agent import create_memory_agent
-from agents.narrative_agent import create_narrative_agent
-from agents.orchestrator_agent import create_orchestrator_agent
-from services.database import DatabaseService
-from services.embedding import EmbeddingService
-import services_container
-from callbacks.safety import content_filter_callback, tool_argument_validator
-import config
-from services.openrouter_setup import OpenRouterIntegration
-from a2a.server import register_a2a_blueprint
-from web.mcp_routes import register_mcp_blueprint
+    # Import ADK components
+    from google.adk.agents import Agent
+    from google.adk.models.lite_llm import LiteLlm
+    from google.adk.sessions import InMemorySessionService, Session
+    from google.adk.runners import Runner
+    from google.genai import types
+    import litellm
 
-# Configure LiteLLM
-litellm.drop_params = True  # Don't include certain params in request
-litellm.set_verbose = True  # More detailed logging
-litellm.success_callback = []  # Reset callbacks
-litellm.failure_callback = []  # Reset callbacks
-litellm.num_retries = 5  # Add retries
-
-# Verify OpenRouter configuration
-if not OpenRouterIntegration.configure_openrouter():
-    raise RuntimeError("OpenRouter initialization failed – check API key")
+    # Import Cognisphere components
+    from agents.identity_agent import create_identity_agent
+    from agents.memory_agent import create_memory_agent
+    from agents.narrative_agent import create_narrative_agent
+    from agents.orchestrator_agent import create_orchestrator_agent
+    from services.database import DatabaseService
+    from services.embedding import EmbeddingService
+    import services_container
+    from callbacks.safety import content_filter_callback, tool_argument_validator
+    import config
+    from services.openrouter_setup import OpenRouterIntegration
+except ImportError as e:
+    print(f"Error importing required modules: {e}")
+    traceback.print_exc()
+    sys.exit(1)
 
 # Initialize the Flask app
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', template_folder='templates')
 print("Flask app initialized.")
 
+# Configure LiteLLM
+try:
+    litellm.drop_params = True  # Don't include certain params in request
+    litellm.set_verbose = True  # More detailed logging
+    litellm.success_callback = []  # Reset callbacks
+    litellm.failure_callback = []  # Reset callbacks
+    litellm.num_retries = 5  # Add retries
+
+    # Verify OpenRouter configuration
+    if not OpenRouterIntegration.configure_openrouter():
+        print("Warning: OpenRouter initialization failed – check API key")
+except Exception as e:
+    print(f"Error configuring LiteLLM: {e}")
+    traceback.print_exc()
+
 # --- Initialize Services ---
-print("Initializing DatabaseService...")
-db_service = DatabaseService(db_path=config.DATABASE_CONFIG["path"])
-print("DatabaseService initialized.")
+try:
+    print("Initializing DatabaseService...")
+    db_service = DatabaseService(db_path=config.DATABASE_CONFIG["path"])
+    print("DatabaseService initialized.")
 
-print("Initializing EmbeddingService...")
-embedding_service = EmbeddingService()
-print("EmbeddingService initialized.")
+    print("Initializing EmbeddingService...")
+    embedding_service = EmbeddingService()
+    print("EmbeddingService initialized.")
+    logging.basicConfig(level=logging.DEBUG)
+    app.logger.setLevel(logging.DEBUG)
 
-# Initialize the service container
-services_container.initialize_services(db_service, embedding_service)
+    # Initialize the service container
+    services_container.initialize_services(db_service, embedding_service)
+
+    # Initialize the IdentityStore with robust error handling
+    print("Initializing IdentityStore...")
+    try:
+        # Ensure the identities directory exists
+        identities_dir = os.path.join(config.DATABASE_CONFIG["path"], "identities")
+        os.makedirs(identities_dir, exist_ok=True)
+
+        # Create IdentityStore
+        identity_store = IdentityStore(identities_dir)
+
+        # Verify default identity exists
+        default_identities = identity_store.list_identities()
+        if not any(identity['id'] == 'default' for identity in default_identities):
+            print("Creating default 'Cupcake' identity...")
+            from data_models.identity import Identity
+
+            default_identity = Identity(
+                name="Cupcake",
+                description="The default Cognisphere identity",
+                identity_type="system",
+                tone="friendly",
+                personality="helpful",
+                instruction="You are Cupcake, the default identity for Cognisphere."
+            )
+            default_identity.id = "default"
+
+            # Save the default identity
+            identity_store.save_identity(default_identity)
+            print("Default 'Cupcake' identity created successfully.")
+
+        print("IdentityStore initialized.")
+
+        # Add IdentityStore to services_container
+        services_container.initialize_identity_store(identity_store)
+
+    except Exception as identity_error:
+        print(f"Critical error initializing IdentityStore: {identity_error}")
+        print(traceback.format_exc())
+
+        # Fallback: Create a new IdentityStore
+        identity_store = IdentityStore()
+        services_container.initialize_identity_store(identity_store)
+        print("Fallback IdentityStore created.")
+
+except Exception as e:
+    print(f"Error initializing database services: {e}")
+    traceback.print_exc()
 
 # Initialize MCP toolset (if available)
+mcp_tools = []
 try:
     # Try to import MCP components
     from mcp.toolset import MCPToolset
@@ -74,62 +140,80 @@ try:
     print(f"MCP initialized with {len(mcp_tools)} tools")
 except ImportError:
     print("MCP components not available - proceeding without MCP support")
-    mcp_tools = []
+except Exception as e:
+    print(f"Error initializing MCP: {e}")
+    traceback.print_exc()
 
 # --- Create Session Service ---
-print("Initializing SessionService...")
-session_service = InMemorySessionService()
-print("SessionService initialized.")
+try:
+    print("Initializing SessionService...")
+    session_service = InMemorySessionService()
+    print("SessionService initialized.")
 
-# Set environment variable for litellm
-os.environ['LITELLM_LOG'] = 'DEBUG'
+    # Set environment variable for litellm
+    os.environ['LITELLM_LOG'] = 'DEBUG'
+except Exception as e:
+    print(f"Error initializing session service: {e}")
+    traceback.print_exc()
 
 # --- Initialize Agents ---
-print("Initializing Identity Agent...")
-identity_agent = create_identity_agent(model=LiteLlm(model=config.MODEL_CONFIG["orchestrator"]))
-print("Identity Agent initialized.")
+try:
+    print("Initializing Identity Agent...")
+    identity_agent = create_identity_agent(model=LiteLlm(model=config.MODEL_CONFIG["orchestrator"]))
+    print("Identity Agent initialized.")
 
-# Set up sub-agents
-print("Initializing Memory Agent...")
-memory_agent = create_memory_agent(model=LiteLlm(model=config.MODEL_CONFIG["memory"]))
-print("Memory Agent initialized.")
+    # Set up sub-agents
+    print("Initializing Memory Agent...")
+    memory_agent = create_memory_agent(model=LiteLlm(model=config.MODEL_CONFIG["memory"]))
+    print("Memory Agent initialized.")
 
-print("Initializing Narrative Agent...")
-narrative_agent = create_narrative_agent(model=LiteLlm(model=config.MODEL_CONFIG["narrative"]))
-print("Narrative Agent initialized.")
+    print("Initializing Narrative Agent...")
+    narrative_agent = create_narrative_agent(model=LiteLlm(model=config.MODEL_CONFIG["narrative"]))
+    print("Narrative Agent initialized.")
 
-# Create orchestrator
-print("Initializing Orchestrator Agent...")
-orchestrator_agent = create_orchestrator_agent(
-    model=LiteLlm(model=config.MODEL_CONFIG["orchestrator"]),
-    memory_agent=memory_agent,
-    narrative_agent=narrative_agent,
-    identity_agent=identity_agent,
-    mcp_tools=mcp_tools  # Pass collected MCP tools
-)
-print("Orchestrator Agent initialized.")
+    # Create orchestrator
+    print("Initializing Orchestrator Agent...")
+    orchestrator_agent = create_orchestrator_agent(
+        model=LiteLlm(model=config.MODEL_CONFIG["orchestrator"]),
+        memory_agent=memory_agent,
+        narrative_agent=narrative_agent,
+        identity_agent=identity_agent,
+        mcp_tools=mcp_tools  # Pass collected MCP tools
+    )
+    print("Orchestrator Agent initialized.")
 
-# Add safety callbacks if enabled
-if config.SAFETY_CONFIG["enable_content_filter"]:
-    orchestrator_agent.before_model_callback = content_filter_callback
+    # Add safety callbacks if enabled
+    if config.SAFETY_CONFIG["enable_content_filter"]:
+        orchestrator_agent.before_model_callback = content_filter_callback
 
-if config.SAFETY_CONFIG["enable_tool_validation"]:
-    orchestrator_agent.before_tool_callback = tool_argument_validator
+    if config.SAFETY_CONFIG["enable_tool_validation"]:
+        orchestrator_agent.before_tool_callback = tool_argument_validator
 
-# Create Runner
-app_name = "cognisphere_adk"
-runner = Runner(
-    agent=orchestrator_agent,
-    app_name=app_name,
-    session_service=session_service
-)
+    # Create Runner
+    app_name = "cognisphere_adk"
+    runner = Runner(
+        agent=orchestrator_agent,
+        app_name=app_name,
+        session_service=session_service
+    )
+except Exception as e:
+    print(f"Error initializing agents: {e}")
+    traceback.print_exc()
 
 # --- Register the blueprints ---
-register_a2a_blueprint(app)
-print("A2A endpoints registered.")
+try:
+    # Import blueprints here to avoid circular imports
+    from a2a.server import register_a2a_blueprint
+    from web.mcp_routes import register_mcp_blueprint
 
-register_mcp_blueprint(app)
-print("MCP endpoints registered.")
+    register_a2a_blueprint(app)
+    print("A2A endpoints registered.")
+
+    register_mcp_blueprint(app)
+    print("MCP endpoints registered.")
+except Exception as e:
+    print(f"Error registering blueprints: {e}")
+    traceback.print_exc()
 
 # --- Helper Functions ---
 def ensure_session(user_id: str, session_id: str) -> Session:
@@ -155,51 +239,64 @@ def ensure_session(user_id: str, session_id: str) -> Session:
             state=initial_state
         )
 
+        # Ensure identity catalog is loaded into session state
+        initialize_identity_state(session)
+
     return session
 
 
-def initialize_default_identity():
-    """
-    Create a default identity if none exists
-    """
-    print("Initializing default identity...")
-    default_session = ensure_session('default_user', 'default_session')
+def initialize_identity_state(session: Session):
+    # New robust method for initializing identity state
+    print("Initializing identity state in session...")
 
-    # Check if identities catalog exists
-    if "identities" not in default_session.state:
-        default_session.state["identities"] = {}
+    # Load identity catalog from storage
+    identities_list = identity_store.list_identities()
+    identities_catalog = {}
 
-    # Check if default identity exists
-    if "default" not in default_session.state["identities"]:
-        # Create default identity
-        default_identity = {
-            "id": "default",
-            "name": "Cupcake",
-            "description": "The default Cognisphere identity",
-            "type": "system",
-            "tone": "friendly",
-            "personality": "helpful",
-            "instruction": "You are Cupcake, the default identity.",
-            "creation_time": datetime.now().isoformat(),
-            "last_accessed": datetime.now().isoformat(),
-            "metadata": {
-                "creation_source": "system",
-                "access_count": 0
-            }
+    # Convert to session state format
+    for identity_info in identities_list:
+        identity_id = identity_info["id"]
+        identities_catalog[identity_id] = {
+            "name": identity_info["name"],
+            "type": identity_info["type"],
+            "created": identity_info.get("creation_time", "")
         }
 
-        # Store identity
-        default_session.state["identities"]["default"] = {
-            "name": "Cupcake",
-            "type": "system",
-            "created": datetime.now().isoformat()
-        }
+    # Store in session state
+    session.state["identities"] = identities_catalog
 
-        default_session.state["identity:default"] = default_identity
-        default_session.state["active_identity_id"] = "default"
-        print("Created default identity: Cupcake")
+    # Set default identity as active if no active identity
+    if "active_identity_id" not in session.state:
+        session.state["active_identity_id"] = "default"
+
+    # Load active identity data
+    active_id = session.state["active_identity_id"]
+    active_identity = identity_store.get_identity(active_id)
+
+    if active_identity:
+        # Record access
+        identity_store.record_identity_access(active_id)
+        # Store in session state
+        session.state[f"identity:{active_id}"] = active_identity.to_dict()
+        session.state["identity_metadata"] = {
+            "name": active_identity.name,
+            "type": active_identity.type,
+            "last_accessed": active_identity.last_accessed
+        }
     else:
-        print("Default identity already exists")
+        # Fall back to default
+        default_identity = identity_store.get_identity("default")
+        if default_identity:
+            session.state["active_identity_id"] = "default"
+            session.state[f"identity:default"] = default_identity.to_dict()
+            session.state["identity_metadata"] = {
+                "name": default_identity.name,
+                "type": default_identity.type,
+                "last_accessed": default_identity.last_accessed
+            }
+
+    print(f"Loaded {len(identities_catalog)} identities, active identity: {session.state.get('active_identity_id')}")
+
 
 def process_message(user_id: str, session_id: str, message: str):
     """
@@ -335,55 +432,61 @@ def get_memories():
         print("Finished processing /api/memories")
 
 
+# Identity-related API endpoints
+
 @app.route('/api/identities', methods=['GET'])
 def get_identities():
-    """Get available identities."""
-    print("Received request for /api/identities")
-    user_id = request.args.get('user_id', 'default_user')
-    session_id = request.args.get('session_id', 'default_session')
+    """Get available identities with extensive error handling."""
+    print("VERBOSE: Received request for /api/identities")
 
     try:
-        # Ensure session exists
-        session = ensure_session(user_id, session_id)
+        # Get identity store from services container
+        identity_store = services_container.get_identity_store()
 
-        # Get identities from session state
-        identities_catalog = session.state.get("identities", {})
-        active_id = session.state.get("active_identity_id")
+        if not identity_store:
+            print("CRITICAL: Identity store is None!")
+            return jsonify({
+                'error': 'Identity store not available',
+                'identities': [],
+                'active_identity_id': 'default',
+                'count': 0
+            }), 500
 
-        print(f"Found identities catalog: {identities_catalog}")
-        print(f"Active identity: {active_id}")
-
-        # Format the response
-        identities = []
-        for identity_id, basic_info in identities_catalog.items():
-            # Get full identity data if available
-            full_data = session.state.get(f"identity:{identity_id}")
-
-            identity = {
-                "id": identity_id,
-                "name": basic_info.get("name", "Unknown"),
-                "type": basic_info.get("type", "unknown"),
-                "is_active": identity_id == active_id
-            }
-
-            # Add additional details if available
-            if full_data:
-                identity["description"] = full_data.get("description", "")
-                identity["personality"] = full_data.get("personality", "")
-                identity["tone"] = full_data.get("tone", "")
-
-            identities.append(identity)
+        # List identities with extensive logging
+        try:
+            identities_list = identity_store.list_identities()
+            print(f"VERBOSE: Found {len(identities_list)} identities")
+        except Exception as list_error:
+            print(f"CRITICAL ERROR listing identities: {list_error}")
+            print(f"VERBOSE Traceback: {traceback.format_exc()}")
+            identities_list = [{
+                "id": "default",
+                "name": "Cupcake",
+                "description": "Fallback System Identity",
+                "type": "system"
+            }]
 
         return jsonify({
-            'identities': identities,
-            'active_identity_id': active_id,
-            'count': len(identities)
+            'identities': identities_list,
+            'active_identity_id': 'default',
+            'count': len(identities_list)
         })
+
     except Exception as e:
-        print(f"Error in /api/identities: {e}")
-        return jsonify({'error': str(e)}), 500
-    finally:
-        print("Finished processing /api/identities")
+        print(f"CRITICAL UNHANDLED ERROR: {e}")
+        print(f"VERBOSE Traceback: {traceback.format_exc()}")
+
+        return jsonify({
+            'error': str(e),
+            'identities': [{
+                "id": "default",
+                "name": "Cupcake",
+                "description": "Fallback Identity",
+                "type": "system"
+            }],
+            'active_identity_id': 'default',
+            'count': 1
+        }), 500
 
 
 @app.route('/api/identities/switch', methods=['POST'])
@@ -402,21 +505,29 @@ def switch_identity():
         # Ensure session exists
         session = ensure_session(user_id, session_id)
 
-        # Check if identity exists and get the name
-        identity_data = session.state.get(f"identity:{identity_id}")
-        identity_name = "Unknown"
-        if identity_data and isinstance(identity_data, dict):
-            identity_name = identity_data.get("name", "Unknown")
+        # Get identity store from services container
+        identity_store = services_container.get_identity_store()
 
-        # Direct state manipulation for simple operations
+        # Get identity from persistent storage
+        identity = identity_store.get_identity(identity_id)
+        if not identity:
+            return jsonify({
+                "error": f"Identity with ID {identity_id} not found"
+            }), 404
+
+        # Record access in persistent storage
+        identity_store.record_identity_access(identity_id)
+
+        # Update session state
         session.state["active_identity_id"] = identity_id
+        session.state[f"identity:{identity_id}"] = identity.to_dict()
         session.state["identity_metadata"] = {
-            "name": identity_name,
-            "type": identity_data.get("type", "unknown") if identity_data else "unknown",
-            "last_accessed": datetime.now().isoformat()
+            "name": identity.name,
+            "type": identity.type,
+            "last_accessed": identity.last_accessed
         }
 
-        # Save the updated state
+        # Save session
         session_service.get_session(
             app_name=app_name,
             user_id=user_id,
@@ -426,8 +537,8 @@ def switch_identity():
         return jsonify({
             'status': 'success',
             'active_identity_id': identity_id,
-            'active_identity_name': identity_name,
-            'message': f"Switched to identity: {identity_name}"
+            'active_identity_name': identity.name,
+            'message': f"Switched to identity: {identity.name}"
         })
     except Exception as e:
         print(f"Error in /api/identities/switch: {e}")
@@ -1634,6 +1745,25 @@ if __name__ == '__main__':
         print(f"Created template at {index_path}")
 
     # Run the app
-    initialize_default_identity()
-    print("Starting Flask app...")
-    app.run(host='0.0.0.0', debug=True)
+
+    try:
+        print("Starting Flask app...")
+        # Get local IP dynamically
+        import socket
+
+        local_ip = socket.gethostbyname(socket.gethostname())
+        print(f"Attempting to start server on:")
+        print(f"http://127.0.0.1:5000")
+        print(f"http://{local_ip}:5000")
+
+        # Add threading and detailed error handling
+        app.run(
+            host='localhost',
+            port=8091,
+            debug=True,
+            threaded=True,  # Enable threading
+            use_reloader=False  # Disable reloader to get full error traces
+        )
+    except Exception as e:
+        print(f"CRITICAL SERVER START ERROR: {e}")
+        print(traceback.format_exc())
