@@ -3,8 +3,7 @@
 
 
 
-Know issues:  
-   - Identity (FIXED) 
+Use A2A to build a network of Agents, or to connect to Remote Networks of agents and use their Tools or MCP Servers, Concept: https://github.com/IhateCreatingUserNames2/Aira 
 
 
 ## Overview
