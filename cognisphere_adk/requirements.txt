@@ -1,0 +1,64 @@
+# Core Python Dependencies
+google-adk>=0.1.0
+flask>=2.1.0
+python-dotenv>=0.20.0
+
+# LLM and AI Dependencies
+litellm>=1.30.0
+google-generativeai>=0.3.0
+sentence-transformers>=2.2.0
+chromadb>=0.4.0
+
+# External API and Integration
+openrouter-python>=0.1.0
+openai>=1.0.0
+
+# Authentication and Security
+requests>=2.28.0
+
+# MCP (Model Context Protocol) Integration
+model-context-protocol>=0.1.0
+
+# A2A (Agent2Agent) Protocol
+aiohttp>=3.8.0
+
+# Web and Async Frameworks
+asyncio>=3.4.3
+websockets>=10.0
+
+# Data Handling and Utilities
+pydantic>=2.0.0
+typing-extensions>=4.5.0
+uuid>=1.30
+
+# Optional: Additional Scientific Computing
+numpy>=1.21.0
+scipy>=1.7.0
+
+# Optional: Machine Learning and Embedding
+torch>=1.10.0
+transformers>=4.20.0
+
+# Optional: Database and Persistent Storage
+sqlalchemy>=1.4.0
+
+# Development and Testing
+pytest>=7.0.0
+mypy>=0.950
+black>=22.3.0
+isort>=5.10.0
+
+# Logging and Monitoring
+python-json-logger>=2.0.0
+
+# Error Tracking (Optional)
+sentry-sdk>=1.5.0
+
+# Configuration Management
+pyyaml>=6.0
+
+# Web Utilities
+werkzeug>=2.1.0
+
+# Optional: Advanced Numeric Computation
+sympy>=1.10
