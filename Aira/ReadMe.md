@@ -121,15 +121,3 @@ MIT © 2025 Cognisphere
 [Full License Text](LICENSE)
 ```
 
-Key formatting elements included:
-1. **Badges** - Quick visual status indicators
-2. **Code Blocks** - For commands and configurations
-3. **Tables** - Troubleshooting guide
-4. **Mermaid Diagram** - Architecture visualization
-5. **Section Headers** - Clear hierarchy
-6. **Emojis** - Visual markers for key sections
-
-Would you like me to add:
-- Deployment instructions for cloud hosting?
-- API reference details?
-- Contribution guidelines?
