@@ -37,7 +37,7 @@ To use the AIRA integration, you need a running AIRA hub. You can start one usin
 
 ```bash
 # Clone the AIRA repository
-git clone https://github.com/example/aira-hub.git
+git clone https://github.com/IhateCreatingUserNames2/aira.git
 cd aira-hub
 
 # Install dependencies
