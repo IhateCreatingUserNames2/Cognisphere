@@ -1,30 +1,28 @@
 # cognisphere_adk/tools/identity_tools.py
 """
 Tools for identity management in Cognisphere.
+Updated for persistent storage.
 """
 
 from google.adk.tools.tool_context import ToolContext
 from data_models.identity import Identity
-from data_models.memory import Memory
 from data_models.narrative import NarrativeThread
-from services_container import get_db_service, get_embedding_service
+from services_container import get_identity_store, get_db_service, get_embedding_service
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 import json
-from typing import Dict, Any, List, Optional
-
 
 def create_identity(
         name: str,
         description: str = "",
-        characteristics: Optional[Dict[str, Any]] = None,  # Change here
+        characteristics: Optional[Dict[str, Any]] = None,
         tone: str = "neutral",
         personality: str = "balanced",
         instruction: str = "",
         tool_context: ToolContext = None
 ) -> Dict[str, Any]:
     """
-    Creates a new identity profile.
+    Creates a new identity profile and saves it to persistent storage.
 
     Args:
         name: Name of the identity
@@ -42,58 +40,82 @@ def create_identity(
     if characteristics is None:
         characteristics = {}
 
+    # Get the identity store from services container
+    identity_store = get_identity_store()
+    if not identity_store:
+        return {
+            "status": "error",
+            "message": "Identity storage service not available"
+        }
+
     # Create new identity object
     identity = Identity(
         name=name,
         description=description,
-        characteristics=characteristics,  # Already guaranteed to be a dict
+        characteristics=characteristics,
         tone=tone,
         personality=personality,
         instruction=instruction
     )
 
-    # Store in session state
-    identity_dict = identity.to_dict()
-    identity_id = identity.id
-
-    # Update identities catalog
-    identities_catalog = tool_context.state.get("identities", {})
-    identities_catalog[identity_id] = {
-        "name": name,
-        "type": identity.type,
-        "created": identity.creation_time
-    }
-    tool_context.state["identities"] = identities_catalog
-
-    # Store complete identity data
-    tool_context.state[f"identity:{identity_id}"] = identity_dict
-
-    # Create a default "system" identity if it doesn't exist
-    if "default" not in identities_catalog:
-        default_identity = Identity(
-            name="Cupcake",
-            description="The default Cognisphere identity",
-            identity_type="system",
-            tone="friendly",
-            personality="helpful",
-            instruction="You are Cupcake, the Cognisphere system's default identity."
-        )
-        default_id = "default"
-        tool_context.state[f"identity:{default_id}"] = default_identity.to_dict()
-        identities_catalog[default_id] = {
-            "name": default_identity.name,
-            "type": default_identity.type,
-            "created": default_identity.creation_time
+    # Save to persistent storage
+    success = identity_store.save_identity(identity)
+    if not success:
+        return {
+            "status": "error",
+            "message": "Failed to save identity to storage"
         }
-        tool_context.state["identities"] = identities_catalog
 
-    return {
+    # Prepare result dictionary
+    result = {
         "status": "success",
-        "identity_id": identity_id,
+        "identity_id": identity.id,
         "name": name,
         "message": f"Identity '{name}' created successfully"
     }
 
+    # Only proceed with additional operations if tool_context is provided
+    if tool_context is not None:
+        try:
+            # Update identities catalog in session state
+            identities_catalog = tool_context.state.get("identities", {})
+            identities_catalog[identity.id] = {
+                "name": name,
+                "type": identity.type,
+                "created": identity.creation_time
+            }
+            tool_context.state["identities"] = identities_catalog
+
+            # Store complete identity data in session state
+            tool_context.state[f"identity:{identity.id}"] = identity.to_dict()
+
+            # Try to generate a narrative
+            try:
+                narrative_result = generate_identity_narrative(
+                    identity_id=identity.id,
+                    title=f"{name}'s Origin Story",
+                    theme="personal_discovery",
+                    tool_context=tool_context
+                )
+
+                # Add narrative information to the result if successful
+                if narrative_result["status"] == "success":
+                    result["narrative"] = {
+                        "thread_id": narrative_result["thread_id"],
+                        "event_count": narrative_result["event_count"],
+                        "message": narrative_result["message"]
+                    }
+            except Exception as narrative_error:
+                # Log narrative generation error but don't block identity creation
+                print(f"Warning: Could not generate narrative for {name}: {narrative_error}")
+                result["narrative_generation_error"] = str(narrative_error)
+
+        except Exception as state_error:
+            # Log any errors in state manipulation
+            print(f"Warning: Error updating identity state for {name}: {state_error}")
+            result["state_update_error"] = str(state_error)
+
+    return result
 
 def switch_to_identity(
         identity_id: str,
@@ -109,15 +131,23 @@ def switch_to_identity(
     Returns:
         Dict with information about the identity switch
     """
+    # Get the identity store from services container
+    identity_store = get_identity_store()
+    if not identity_store:
+        return {
+            "status": "error",
+            "message": "Identity storage service not available"
+        }
+
     # Get current identity
     current_id = tool_context.state.get("active_identity_id")
 
-    # Check if the requested identity exists
-    identity_data = tool_context.state.get(f"identity:{identity_id}")
-    if not identity_data:
-        # Check if we're requesting the "default" identity
+    # Check if the requested identity exists in storage first
+    identity_obj = identity_store.get_identity(identity_id)
+    if not identity_obj:
+        # Check if we're requesting the default identity
         if identity_id == "default":
-            # Create default identity if it doesn't exist
+            # Create default identity if it doesn't exist in storage
             default_identity = Identity(
                 name="Cupcake",
                 description="The default Cognisphere identity",
@@ -126,27 +156,21 @@ def switch_to_identity(
                 personality="helpful",
                 instruction="You are Cupcake, the Cognisphere system's default identity."
             )
-            identity_data = default_identity.to_dict()
-            tool_context.state[f"identity:{identity_id}"] = identity_data
-
-            # Update identities catalog
-            identities_catalog = tool_context.state.get("identities", {})
-            identities_catalog[identity_id] = {
-                "name": default_identity.name,
-                "type": default_identity.type,
-                "created": default_identity.creation_time
-            }
-            tool_context.state["identities"] = identities_catalog
+            default_identity.id = "default"  # Force ID to be "default"
+            identity_store.save_identity(default_identity)
+            identity_obj = default_identity
         else:
             return {
                 "status": "error",
                 "message": f"Identity with ID '{identity_id}' not found"
             }
 
-    # Record access to the identity
-    identity_obj = Identity.from_dict(identity_data)
-    identity_obj.record_access()
-    tool_context.state[f"identity:{identity_id}"] = identity_obj.to_dict()
+    # Record access in persistent storage
+    identity_store.record_identity_access(identity_id)
+
+    # Update identity data in session state
+    identity_data = identity_obj.to_dict()
+    tool_context.state[f"identity:{identity_id}"] = identity_data
 
     # Save previous identity state if needed
     if current_id:
@@ -183,37 +207,27 @@ def list_identities(
     Returns:
         Dict with information about available identities
     """
-    # Get identities catalog
-    identities_catalog = tool_context.state.get("identities", {})
+    # Get the identity store from services container
+    identity_store = get_identity_store()
+    if not identity_store:
+        return {
+            "status": "error",
+            "message": "Identity storage service not available"
+        }
 
-    # Enhance with more details
-    detailed_identities = []
-    for identity_id, basic_info in identities_catalog.items():
-        # Get full identity data
-        identity_data = tool_context.state.get(f"identity:{identity_id}")
-        if identity_data:
-            # Extract relevant information
-            detailed_identities.append({
-                "id": identity_id,
-                "name": identity_data.get("name", basic_info.get("name", "Unknown")),
-                "description": identity_data.get("description", ""),
-                "type": identity_data.get("type", basic_info.get("type", "unknown")),
-                "created": identity_data.get("creation_time", basic_info.get("created", "")),
-                "last_accessed": identity_data.get("last_accessed", ""),
-                "is_active": identity_id == tool_context.state.get("active_identity_id")
-            })
+    # Get identities from persistent storage
+    detailed_identities = identity_store.list_identities()
 
-    # Sort by last accessed (most recent first)
-    detailed_identities.sort(
-        key=lambda x: x.get("last_accessed", ""),
-        reverse=True
-    )
+    # Mark active identity
+    active_id = tool_context.state.get("active_identity_id")
+    for identity in detailed_identities:
+        identity["is_active"] = identity["id"] == active_id
 
     return {
         "status": "success",
         "identities": detailed_identities,
         "count": len(detailed_identities),
-        "active_identity_id": tool_context.state.get("active_identity_id")
+        "active_identity_id": active_id
     }
 
 
@@ -233,16 +247,21 @@ def update_identity(
     Returns:
         Dict with information about the update
     """
-    # Get the identity
-    identity_data = tool_context.state.get(f"identity:{identity_id}")
-    if not identity_data:
+    # Get the identity store from services container
+    identity_store = get_identity_store()
+    if not identity_store:
+        return {
+            "status": "error",
+            "message": "Identity storage service not available"
+        }
+
+    # Get the identity from persistent storage
+    identity = identity_store.get_identity(identity_id)
+    if not identity:
         return {
             "status": "error",
             "message": f"Identity with ID '{identity_id}' not found"
         }
-
-    # Convert to object
-    identity = Identity.from_dict(identity_data)
 
     # Apply updates
     allowed_fields = {
@@ -259,7 +278,15 @@ def update_identity(
     # Update metadata
     identity.metadata["last_modified"] = datetime.utcnow().isoformat()
 
-    # Save updated identity
+    # Save updated identity to persistent storage
+    success = identity_store.save_identity(identity)
+    if not success:
+        return {
+            "status": "error",
+            "message": f"Failed to save updated identity '{identity.name}' to storage"
+        }
+
+    # Update session state
     updated_data = identity.to_dict()
     tool_context.state[f"identity:{identity_id}"] = updated_data
 
@@ -306,9 +333,17 @@ def link_identity_to_narrative(
     Returns:
         Dict with information about the link
     """
-    # Get the identity
-    identity_data = tool_context.state.get(f"identity:{identity_id}")
-    if not identity_data:
+    # Get the identity store from services container
+    identity_store = get_identity_store()
+    if not identity_store:
+        return {
+            "status": "error",
+            "message": "Identity storage service not available"
+        }
+
+    # Get the identity from persistent storage
+    identity = identity_store.get_identity(identity_id)
+    if not identity:
         return {
             "status": "error",
             "message": f"Identity with ID '{identity_id}' not found"
@@ -324,8 +359,17 @@ def link_identity_to_narrative(
         }
 
     # Update identity with link
-    identity = Identity.from_dict(identity_data)
     identity.add_linked_narrative(narrative_id, relationship_type)
+
+    # Save updated identity to persistent storage
+    success = identity_store.save_identity(identity)
+    if not success:
+        return {
+            "status": "error",
+            "message": f"Failed to save updated identity '{identity.name}' to storage"
+        }
+
+    # Update session state
     tool_context.state[f"identity:{identity_id}"] = identity.to_dict()
 
     # Update narrative with link to identity
@@ -366,17 +410,23 @@ def collect_identity_memories(
     Returns:
         Dict with memories associated with the identity
     """
-    # Get the identity
-    identity_data = tool_context.state.get(f"identity:{identity_id}")
-    if not identity_data:
+    # Get the identity store from services container
+    identity_store = get_identity_store()
+    if not identity_store:
+        return {
+            "status": "error",
+            "message": "Identity storage service not available"
+        }
+
+    # Get the identity from persistent storage
+    identity = identity_store.get_identity(identity_id)
+    if not identity:
         return {
             "status": "error",
             "message": f"Identity with ID '{identity_id}' not found"
         }
 
-    identity = Identity.from_dict(identity_data)
-
-    # Access services
+    # Access other services
     db_service = get_db_service()
     embedding_service = get_embedding_service()
 
@@ -449,8 +499,8 @@ def collect_identity_memories(
 
 def generate_identity_narrative(
         identity_id: str,
-        title: Optional[str] = None,  # Change here
-        theme: Optional[str] = None,  # Change here
+        title: Optional[str] = None,  # Change this line
+        theme: Optional[str] = None,  # And this line
         tool_context: ToolContext = None
 ) -> Dict[str, Any]:
     """
@@ -458,22 +508,28 @@ def generate_identity_narrative(
 
     Args:
         identity_id: ID of the identity
-        title: Optional title for the narrative
-        theme: Optional theme for the narrative
+        title: Optional title for the narrative (will be generated if not provided)
+        theme: Optional theme for the narrative (will be generated if not provided)
         tool_context: Tool context for accessing session state
 
     Returns:
         Dict with information about the generated narrative
     """
-    # Get the identity
-    identity_data = tool_context.state.get(f"identity:{identity_id}")
-    if not identity_data:
+    # Get the identity store from services container
+    identity_store = get_identity_store()
+    if not identity_store:
+        return {
+            "status": "error",
+            "message": "Identity storage service not available"
+        }
+
+    # Get the identity from persistent storage
+    identity = identity_store.get_identity(identity_id)
+    if not identity:
         return {
             "status": "error",
             "message": f"Identity with ID '{identity_id}' not found"
         }
-
-    identity = Identity.from_dict(identity_data)
 
     # Collect memories for this identity
     memory_result = collect_identity_memories(identity_id, limit=20, tool_context=tool_context)
@@ -491,23 +547,23 @@ def generate_identity_narrative(
     # Access database service
     db_service = get_db_service()
 
+    # Generate title if not provided
+    if title is None:
+        title = f"{identity.name}'s Journey"
+
+    # Generate theme if not provided
+    if theme is None:
+        theme = "personal_exploration"
+
     # Create a narrative thread
-    thread_title = title or f"{identity.name}'s {theme or 'Story'}"
     thread_description = f"Narrative derived from {identity.name}'s experiences and memories"
 
     thread = NarrativeThread(
-        title=thread_title,
-        theme=theme or "identity",
-        description=thread_description
+        title=title,
+        theme=theme,
+        description=thread_description,
+        linked_identities=[identity_id]
     )
-
-    # Initialize metadata
-    thread.metadata = {
-        "source": "identity_generation",
-        "identity_id": identity_id,
-        "identity_name": identity.name,
-        "linked_identities": [identity_id]
-    }
 
     # Add memories as events
     for memory in memories:
@@ -518,7 +574,8 @@ def generate_identity_narrative(
         thread.add_event(
             content=content,
             emotion=emotion,
-            impact=impact
+            impact=impact,
+            identity_id=identity_id
         )
 
     # Save the thread
@@ -535,7 +592,7 @@ def generate_identity_narrative(
     return {
         "status": "success",
         "thread_id": thread_id,
-        "title": thread_title,
+        "title": title,
         "event_count": len(thread.events),
         "message": f"Generated narrative from {identity.name}'s memories"
     }
