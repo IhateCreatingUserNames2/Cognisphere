@@ -33,6 +33,7 @@ The memory system goes beyond traditional storage:
   - Emotion-weighted recall
   - Multi-dimensional indexing
   - Dynamic memory transformation
+
 ![image](https://github.com/user-attachments/assets/fe418f8d-3e5d-43f2-91b0-dd7d7de386d3)
 ### 2. Narrative Weaver 📖
 
@@ -42,6 +43,7 @@ Create and manage complex narrative threads:
 - Tracks story development
 - Monitors narrative tension and resolution
 - Detects recurring themes
+
 ![image](https://github.com/user-attachments/assets/8cccb848-067a-472f-b493-5472897b6da8)
 
 ### 3. Identity System 🎭
@@ -52,6 +54,7 @@ A flexible identity management system:
 - Switch between identities dynamically
 - Link identities to memories and narratives
 - Customize tone, personality, and instructions
+
 ![image](https://github.com/user-attachments/assets/aed332e7-f9dc-474d-8824-74c8f3e96b36)
 ## A2A (Agent2Agent) Protocol Integration
 
