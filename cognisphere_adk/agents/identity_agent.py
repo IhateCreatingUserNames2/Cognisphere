@@ -1,9 +1,4 @@
-# cognisphere_adk/agents/identity_agent.py
-"""
-Identity Agent for Cognisphere.
-Manages creation, modification, and switching between identity contexts.
-"""
-
+# cognisphere_adk/agents/identity_agent.py (updated version)
 from google.adk.agents import Agent
 from google.adk.models.lite_llm import LiteLlm
 from tools.identity_tools import (
@@ -56,6 +51,10 @@ def create_identity_agent(model="gpt-4o-mini"):
 
         Remember that identities should be rich in attributes and connect naturally to 
         relevant memories and narrative threads where appropriate.
+
+        IMPORTANT: When creating a new identity, ALWAYS include DETAILED characteristics, 
+        description, personality, tone, and instruction fields to make the identity robust
+        and fully-formed. Never create a minimal identity with just a name.
         """,
         tools=[
             create_identity,
