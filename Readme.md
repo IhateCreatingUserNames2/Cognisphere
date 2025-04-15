@@ -1,7 +1,7 @@
-
+![image](https://github.com/user-attachments/assets/c3feda1f-f341-46d7-ab45-5cd37600db22)
 # Cognisphere ADK: A Cognitive Architecture Framework
 
-![image](https://github.com/user-attachments/assets/c3feda1f-f341-46d7-ab45-5cd37600db22)
+
 
 Know issues:  
    - Identity (FIXED) 
