@@ -2,6 +2,12 @@
 ![image](https://github.com/user-attachments/assets/aed332e7-f9dc-474d-8824-74c8f3e96b36)
 ![image](https://github.com/user-attachments/assets/fe418f8d-3e5d-43f2-91b0-dd7d7de386d3)
 
+
+Know issues:  
+   -  Create an Identity First, because there is a problem in the Reload system. IF you dont create one first, it may get stuck. (need to fix Default identity Initilization)
+   - Identities are not getting saved in the db ( fix identity saving methods ) 
+
+
 ## Overview
 
 Cognisphere ADK is an  AI agent development framework built on Google's Agent Development Kit (ADK) that provides a sophisticated cognitive architecture with multiple specialized components:
