@@ -1,4 +1,6 @@
 # Cognisphere ADK: A Cognitive Architecture Framework
+![image](https://github.com/user-attachments/assets/aed332e7-f9dc-474d-8824-74c8f3e96b36)
+![image](https://github.com/user-attachments/assets/fe418f8d-3e5d-43f2-91b0-dd7d7de386d3)
 
 ## Overview
 
@@ -70,7 +72,7 @@ Advanced tool and context management:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/cognisphere-adk.git
+git clone https://github.com/IhateCreatingUserNames2/cognisphere-adk.git
 
 # Install dependencies
 pip install -r requirements.txt
@@ -163,7 +165,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## Contact
 
-Project Link: [https://github.com/yourusername/cognisphere-adk](https://github.com/yourusername/cognisphere-adk)
+Project Link: [https://github.com/IhateCreatingUserNames2/cognisphere-adk](https://github.com/IhateCreatingUserNames2/cognisphere-adk)
 
 ---
 
