@@ -2,7 +2,11 @@
 # Cognisphere ADK: A Cognitive Architecture Framework
 
 
-
+To be added:
+ - Codex-CLI OpenAI
+ - Multi-modal / attachments / Voice
+ - More LLM Providers: Ollama, Grog . (Default is OpenRouter)
+ - Custom Agent Creator 
 
 
 
