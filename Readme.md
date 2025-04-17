@@ -70,7 +70,10 @@ Cognisphere supports the A2A protocol for seamless agent interoperability:
 - Share capabilities
 - Negotiate interactions
 
-Use A2A to build a network of Agents, or to connect to Remote Networks of agents and use their Tools or MCP Servers, Concept: https://github.com/IhateCreatingUserNames2/Aira 
+Use A2A to build a network of Agents, or to connect to Remote Networks of agents and use their Tools or MCP Servers, 
+Concept: https://github.com/IhateCreatingUserNames2/Aira 
+![image](https://github.com/user-attachments/assets/410e23b3-af6d-4884-b261-331fd92407f0)
+
 ![image](https://github.com/user-attachments/assets/559e5b5f-fd48-494a-8a65-0f5103e5490d)
 
 REMOTE A2A Network ( AiraHub) 
