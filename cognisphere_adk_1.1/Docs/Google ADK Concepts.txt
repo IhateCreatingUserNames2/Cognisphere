@@ -1,0 +1,208 @@
+Google ADK (Agent Development Kit) for Python – Tutorial & Key Concepts
+Introduction to Google ADK (Python Version)
+Google’s Agent Development Kit (ADK) is an open-source, code-first Python framework for building advanced AI agents powered by Large Language Models (LLMs)​
+github.com
+. It provides a structured way to define an agent’s behavior, tools, and orchestration directly in code, giving developers fine-grained control over how an AI agent operates. In contrast to prompt-only approaches, ADK offers explicit components to manage state, tool usage, and multi-agent workflows, so you don’t have to hard-code when to call an LLM or an API – those patterns are built into the framework​
+bibek-poudel.medium.com
+. ADK is designed to integrate tightly with Google’s ecosystem (e.g. Google Cloud services) but can be deployed anywhere from a local machine to cloud infrastructure​
+github.com
+. This makes it suitable for both conversational agents (like chatbots) and process automation agents that handle complex tasks and multi-step workflows​
+google.github.io
+. Development Philosophy: ADK emphasizes code-driven agent development. That means you define your agent’s logic (its tools, how it reacts, how it manages memory, etc.) using Python code rather than only natural language prompts. This code-first approach enables proper version control, debugging, and testing of agent behavior. The kit provides building blocks – such as Agents, Tools, a Runner (execution engine), Sessions for memory, and Callbacks for customization – which work together so your agent can reason, plan, act, and remember in a predictable way. In short, ADK aims to streamline creating, testing, and launching sophisticated AI agents by handling the “plumbing” (LLM calls, tool integrations, state tracking, event handling) for you​
+bibek-poudel.medium.com
+.
+ADK Architecture and Core Concepts
+ADK’s architecture revolves around a few key concepts that define an agent and its interactions​
+google.github.io
+​
+google.github.io
+:
+Agent: The primary entity that performs tasks. In ADK, an agent can be an LLM-driven agent (using a large language model for reasoning) or a workflow agent that deterministically orchestrates sub-tasks. An agent is configured with a model (LLM to use), an instruction or role (defining its behavior/purpose), and possibly sub-agents (for multi-agent hierarchies) or tools it can use​
+google.github.io
+. Each agent has a name and optional description for clarity. In multi-agent systems, you can have a parent agent delegating to child agents (sub-agents) to solve parts of a problem.
+Tools (Actions): Tools represent actions or skills the agent can invoke to interact with the external world beyond the LLM’s native capabilities​
+google.github.io
+. A tool in ADK is typically a Python function (or even another agent acting as a tool) that performs a specific operation, such as querying an API, searching data, executing code, or any custom function​
+google.github.io
+​
+google.github.io
+. By attaching tools to an agent, you grant it the ability to perform actions (e.g. fetch weather data, look up a database, call another service). The agent’s LLM will decide when to use a tool and with what arguments, based on its prompt and the tool’s docstring. Importantly, tools are how the agent affects or queries its environment (the outside world or external systems) – they let the agent go beyond text generation to actually do things​
+google.github.io
+. Tools do not have their own intelligence; they execute developer-defined logic, and the agent incorporates the results.
+Observations: In an agent’s loop of operation, an observation is the information the agent perceives from the environment or tools. In ADK’s design, after the agent calls a tool, it receives the tool’s output as an observation​
+google.github.io
+. Similarly, a user message or any external input to the agent can be considered an observation. The agent’s LLM uses these observations (e.g. “the API returned X”) to decide the next step. This follows a Think -> Act -> Observe cycle: the agent thinks (reasoning with the LLM), takes an action (invokes a tool or produces an answer), then observes the result of that action (tool output or new information) before continuing​
+google.github.io
+.
+State (Session State): State refers to the agent’s memory or persisted context. ADK maintains a Session for each conversation or interaction, which contains a State dictionary to store any information the agent should remember as it runs​
+google.github.io
+. For example, an agent can store what steps have been completed, or carry over details from one user turn to the next. State is like the agent’s short-term memory for a session, and ADK provides a Session Service to manage this (it can keep state in-memory or in a database for persistence)​
+google.github.io
+​
+google.github.io
+. You can use state to enable the agent to recall facts across multiple queries or maintain context in a dialogue. ADK also distinguishes session scope (conversation-specific state) from long-term Memory that persists across sessions (e.g. user preferences stored under a user profile)​
+google.github.io
+. All of this is accessible via a simple dictionary interface (e.g. session.state['key'] = value).
+Runner (Execution Engine): The Runner is the component that orchestrates the agent’s execution. When you run an ADK agent, the Runner takes in user inputs (events), passes them to the agent (LLM) to process, handles the agent’s tool invocations, and collects the outputs as events​
+google.github.io
+. In essence, it manages the interaction loop and ensures the agent’s decisions (actions) and the results (observations) flow correctly. The Runner also coordinates with backend services (like the LLM API and the Session Service for state storage). In ADK, you typically don’t create the Runner manually; it’s handled when you use the CLI or server to run your agent, but conceptually it’s what’s running under the hood driving the agent. (In the code, google.adk.runners.Runner is used to initialize and run sessions programmatically if needed.)
+Events: Every interaction step in ADK is logged as an Event – an immutable record of what happened at a point in time​
+google.github.io
+. An event could be a user message, an agent’s reply, a tool request, a tool result, or a state change. Events form the history of the session, and the Runner and Session Service use them to manage conversation context. For example, when a user asks a question, that becomes an event; the agent’s reply is another event; if the agent called a tool, that call and its result are captured as events as well​
+google.github.io
+​
+google.github.io
+. Events carry metadata including who the author is (user or which agent), timestamps, and any actions (like tool usage or state updates) that occurred​
+google.github.io
+. This event system allows for debugging and tracing what the agent did step by step, and it’s also how ADK implements features like Callbacks (you can hook into events to modify or validate behavior at runtime).
+Environment: In ADK, the “environment” is the external context in which the agent operates. Unlike a reinforcement learning environment, here the environment consists of the user (and their inputs) plus any external systems or data sources the agent can interact with via tools. The agent doesn’t have a separate Environment object; instead, tools serve as the bridge between the agent and the outside world​
+google.github.io
+. You can think of the environment as “everything the agent can observe or act upon.” The agent observes the environment through incoming events (user queries, or data returned from tools) and takes actions on the environment through tool calls. By designing appropriate tools (APIs, functions, other agents), you define what aspects of the outside world the agent can perceive and influence.
+Multi-Agent Orchestration: ADK supports composing multiple agents together. An application can be structured as a team of specialized agents (for example, a Coordinator agent that delegates tasks to specialist sub-agents). Agents can call other agents as tools (using an AgentTool wrapper) or route requests to sub-agents automatically. The hierarchical multi-agent design is a core capability of ADK, allowing complex problems to be broken down: a parent agent can invoke a child agent to handle a subtask and then aggregate results​
+google.github.io
+​
+google.github.io
+. ADK provides workflow agents like SequentialAgent, ParallelAgent, and LoopAgent which are deterministic controllers that can sequence or parallelize tasks among sub-agents​
+google.github.io
+. This gives a blend of LLM-driven agents and hard-coded orchestration when needed. All agents (whether top-level or sub-agent) use the same primitives (tools, state, events, etc.), making the system uniform.
+By leveraging these components, ADK enables an agent to engage in a Thought -> Action -> Observation loop, manage memory, and coordinate with other agents or tools in a controlled manner.
+Building an Agent with adk-python
+Now, let’s walk through how to build and run a simple agent using ADK’s Python SDK. We will create a basic agent that can answer user questions and use a tool for extra information. (For illustration, we use a tool to get weather info, similar to the ADK quickstart example.) 1. Install ADK and Set Up Environment: ADK is available as a Python package. You should have Python 3.9+ and ideally create a virtual environment for your project. Install ADK with pip:
+bash
+Copy
+Edit
+pip install google-adk
+This will install the google.adk library and its dependencies. (It’s recommended to activate a virtualenv before installing​
+google.github.io
+​
+google.github.io
+.) 2. Create an ADK Project Structure: An ADK agent project is just a Python package (a directory with an __init__.py). For example, you might make a directory weather_agent/ for your agent. Inside this, you’ll have your agent definition code (e.g. an agent.py file) and a .env file for configuration​
+google.github.io
+. Recommended structure:
+bash
+Copy
+Edit
+my_agent_project/
+    my_agent/
+        __init__.py
+        agent.py
+        .env
+Here, my_agent is a Python package containing your agent. The name of this package will also be the name of your app by default (used when running or deploying the agent). 3. Define Tools and the Agent (agent.py): In your agent.py, you will import ADK and define any tools (functions) your agent should use. A tool is just a Python function with a docstring describing what it does (the docstring helps the LLM decide when to use it). For example, let's create two simple tools: one to get weather and one to get current time for a city:
+python
+Copy
+Edit
+# agent.py
+from google.adk.agents import Agent
+
+def get_weather(city: str) -> dict:
+    """Get the current weather report for the given city."""
+    # ... (implementation that returns a dict with weather info)
+    return {"status": "success", "report": "Sunny in " + city}
+
+def get_current_time(city: str) -> dict:
+    """Get the current local time in the given city."""
+    # ... (implementation that returns a dict with time info)
+    return {"status": "success", "report": "3:00 PM in " + city}
+These are very basic implementations (in reality they might call an API). The important part is that they return a structured result (here a dict with a status and report). The agent will receive whatever the tool returns as an observation. Now we define the agent itself using the ADK Agent class:
+python
+Copy
+Edit
+root_agent = Agent(
+    name="weather_time_agent",
+    model="gemini-2.0-flash",  # ID of the LLM model to use (e.g., a Gemini model)
+    description="Agent that answers questions about time and weather in a city.",
+    instruction="You are a helpful assistant who provides weather and time information for a given city.",
+    tools=[get_weather, get_current_time]
+)
+We give the agent a name and description, an instruction (this is like the system prompt guiding its behavior), and attach the tools we defined​
+google.github.io
+​
+google.github.io
+. The model parameter specifies which LLM the agent will use – here we use Google’s Gemini model as an example. ADK supports various model backends via the LiteLLM interface, including Gemini (via the Google API), OpenAI GPT-4, Anthropic Claude, etc., but you need to provide the correct model ID and credentials. 4. Configure the LLM API Credentials (.env): To run the agent, you must have access to the LLM. For instance, if using Google’s Gemini model, you’ll need an API key from Google AI Studio or Vertex AI. ADK uses a .env file for configuration so you don’t hard-code secrets. In the .env file, you might have:
+ini
+Copy
+Edit
+GOOGLE_API_KEY=<your Google AI API key>
+GOOGLE_GENAI_USE_VERTEXAI=FALSE
+This tells ADK to use the public Gemini API with the given key​
+google.github.io
+. Alternatively, you can integrate with Vertex AI (if you have a Google Cloud project), in which case you’d set GOOGLE_GENAI_USE_VERTEXAI=TRUE and provide your GCP project info in the env file​
+google.github.io
+. The .env file is automatically loaded by ADK when you run the agent, so it finds the credentials. (For other LLM providers, ADK might use different env vars or config – the pattern is similar.) 5. Run the Agent Locally: Once your agent code and configuration are ready, you can launch the agent. ADK provides a CLI with multiple ways to run or interact with the agent:
+Dev UI: Running adk web starts a local web-based Developer UI where you can chat with your agent and inspect its reasoning and tool usage in real time​
+google.github.io
+. This is very useful for development and debugging, as it shows the events (messages, tool calls, state) live.
+Terminal Interaction: Running adk run will execute the agent in the console. You can type user queries in your terminal and see the agent’s responses printed out, which is convenient for quick tests without the web UI.
+API Server: Running adk api_server launches a local FastAPI server that exposes your agent via HTTP endpoints​
+google.github.io
+​
+google.github.io
+. This is useful for integration testing or if you want to query the agent from another program. For example, after adk api_server is running, you can create a session and send a POST request to http://localhost:8000/run with a JSON payload (containing your query and session info) to get the agent’s response​
+google.github.io
+​
+google.github.io
+. The ADK docs show how to use curl to test this endpoint locally.
+Example Interaction: Suppose our agent is running (via any of the above methods). A user asks: “What’s the weather in New York and the current time there?” The agent’s LLM will see it has tools for weather and time. It might first decide to use the get_weather tool with argument "New York". The ADK Runner executes this function and gets a result like {"status": "success", "report": "Sunny in New York"}. The agent then observes this result and incorporates it. Next, it might call get_current_time("New York"), get a time result, and then finally formulate an answer to the user combining both pieces of information. The user receives a response: “It’s sunny in New York, and the current time is 3:00 PM.” This entire chain (user query -> tool actions -> final answer) is handled by ADK behind the scenes, following the ReAct (Reason-Act-Observe) pattern. 
+
+Illustration of an ADK agent using tools in its thought-action cycle. Here, the user’s query enters on the left, the Agent processes it and decides to call a Tool (like get_weather or get_current_time) to fetch additional info. The tool returns a result, which the agent observes and uses to formulate the final answer for the user (rightmost). This loop can repeat for multi-step reasoning. 6. Test and Refine: While running the agent in the Dev UI or via API, you should test various prompts to ensure it behaves as expected. You can check that it calls the right tools and handles their outputs properly. If the agent isn’t using a tool when it should, consider refining the tool’s docstring or the agent’s instruction to encourage the behavior.
+Testing and Evaluating Your Agent
+Before deploying, it’s important to systematically test your agent. ADK facilitates both interactive testing and automated evaluation:
+Interactive Local Testing: As mentioned, adk api_server allows you to simulate real API calls to your agent in a controlled way. You can create sessions and send queries via HTTP to test how the agent responds to specific inputs​
+google.github.io
+​
+google.github.io
+. This is useful for integration tests or to reproduce edge cases. Each run will produce a sequence of events (which you can log or inspect) so you can verify the agent’s decision-making.
+Automated Evaluation: ADK includes a CLI command adk eval that can run your agent against a predefined evaluation set. You can create JSON files with test cases (inputs and expected outputs or checks) and have ADK run them to see how well the agent performs. For example: adk eval path/to/my_agent path/to/eval_set.json will execute all the test queries in the eval set and report metrics or mismatches. This lets you measure accuracy or consistency in a reproducible way. (ADK’s documentation provides utilities to define evaluation sets and even integrates with platforms like Comet for agent evaluation tracking​
+google.github.io
+.)
+Callbacks for Testing: Another feature is the use of Callbacks. ADK allows you to plug in custom functions at certain points (e.g., before the model is called or before a tool is executed)​
+google.github.io
+. For testing, you might use callbacks to inject faults or simulate certain tool responses to see how the agent handles them. You can also use them to enforce safety rules (for instance, a callback could block certain tool usage if a condition is not met, as shown in advanced tutorials).
+Using these testing approaches, you should verify that the agent maintains the expected state, uses tools correctly, and produces the desired answers. Once you are confident in its performance locally, you can move to deployment.
+Deployment and Execution in Production
+ADK agents can be deployed in various environments. Because the logic is all in Python, you have flexibility to run the agent as a service.
+Local or Custom Deployment: The simplest form is to run the adk api_server on a machine (or container) and host your agent as a service. You could integrate this into a larger application or behind a chatbot interface. ADK’s lightweight FastAPI server can be containerized easily (just wrap the adk api_server command in a Docker container).
+Cloud Run (Serverless on GCP): ADK is designed to “deploy anywhere,” and Google provides guidance for deploying an agent on Cloud Run (a serverless container platform)​
+github.com
+​
+google.github.io
+. You would containerize your agent project (including the ADK runtime) and deploy it. This gives you autoscaling and managed infrastructure while you maintain full control over the agent’s code. Cloud Run is a good option if you want to host the agent’s API endpoint in the cloud without managing servers.
+Vertex AI Agent Engine: Google Cloud offers a managed service called Agent Engine (part of Vertex AI) that natively supports ADK agents​
+google.github.io
+. This is essentially a hosted environment for your agent – you upload your agent code to Vertex AI’s Agent Engine, and it will handle running the agent with enterprise-grade scaling, monitoring, and security. The Agent Engine is the “easiest way to deploy your ADK agents to a managed service in Vertex AI”​
+google.github.io
+. It removes the need to manage your own FastAPI or container; however, it ties deployment to Google Cloud’s ecosystem.
+Other Environments: Because ADK is just Python, you can also deploy on other platforms (e.g., a Kubernetes cluster on GKE​
+google.github.io
+ or any cloud, an on-prem server, etc.). For Kubernetes, you might use the ADK API server in a pod and scale it as needed. ADK’s design doesn’t restrict you – it’s about providing the tooling to build agents, and you choose how to host them.
+When deploying, keep in mind you’ll need to provide the necessary environment variables (API keys, etc.) in your production environment just like the .env in development. Ensure that the Session Service is configured appropriately for persistence if you want to retain state (for example, use a cloud database or Vertex AI’s session service for persistent state instead of the default in-memory). Finally, monitor your agent’s performance in production. ADK’s event logs and optional tracing can help with observing how the agent is behaving with real users. You can iteratively improve the agent by updating its tools, prompts, or adding callbacks for safety. Because it’s code-first, deploying a new version of your agent is analogous to deploying a new version of a software service.
+Key Takeaways and Summary
+Google’s ADK (Python) provides a comprehensive toolkit to develop AI agents with structured control. You define Agents (the reasoning entities) with specific Tools (actions/functions they can call) and configure how they operate (using instructions and model choices) in code, rather than relying purely on prompts. This yields better control and easier debugging of agent behavior​
+github.com
+.
+General Architecture: An ADK agent interacts in a loop of reasoning and acting. The LLM-driven agent can consider the conversation context and its available tools, decide to perform an Action (invoke a tool or delegate to a sub-agent), then get an Observation (the result of that action) and incorporate it into its next reasoning step​
+google.github.io
+. The agent maintains State (memory) across steps and turns, enabling contextual continuity. A Runner component orchestrates these interactions, logging Events for each step to manage the flow and state updates​
+google.github.io
+​
+google.github.io
+.
+Building & Running Agents: With adk-python, you create a project with your agent’s code and simply run adk web or adk run to test it. You attach tools as Python functions to extend the agent’s abilities beyond the base LLM (for example, accessing databases, calling APIs, etc.), and you provide an LLM model ID and API key so the agent can generate responses​
+google.github.io
+​
+google.github.io
+. ADK supports multiple LLMs and even multi-LLM setups in one agent team.
+Testing & Deployment: ADK enables local testing via an API server and offers an evaluation framework for quality assurance. Agents can be deployed on Google Cloud (Vertex AI’s Agent Engine for a managed solution, or Cloud Run for a custom container) or on other platforms as needed​
+google.github.io
+. The toolkit’s flexibility means the same agent code you wrote and tested locally can run in production with minimal changes.
+By focusing on these essentials – Agents, Tools (Actions), Observations, State, and the overall ADK orchestration – you can confidently build sophisticated AI agents. ADK abstracts the complexity of tool integration and multi-agent coordination, letting you concentrate on your agent’s logic and knowledge. It serves as a readable, maintainable reference framework for agent development, making your AI systems easier to reason about and extend over time. With ADK, you harness the power of LLMs in a controlled, modular way to create robust agentic applications​
+github.com
+​
+google.github.io
+. Sources: The content above is based on Google’s official ADK documentation​
+google.github.io
+​
+google.github.io
+ and the ADK open-source repository​
+github.com
+, focusing on the Python SDK and core architectural concepts. All code and examples are derived from the ADK Python toolkit usage.

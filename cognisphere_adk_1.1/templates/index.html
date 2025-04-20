@@ -1,0 +1,1926 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cognisphere ADK</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f7f9fc;
+        }
+        .mcpIntegration-config-panel, .mcpIntegration-tools-panel {
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+    }
+    
+        .mcpIntegration-server-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            background-color: #f9f9f9;
+        }
+        
+        
+        
+                .session-item {
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: #fafbfc;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .session-item:hover {
+            background-color: #f0f4f8;
+        }
+        
+        .session-item.active {
+            border: 1px solid #4a6fa5;
+            background-color: #e6f2ff;
+        }
+        
+        .session-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .active-badge {
+            background-color: #4CAF50;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7em;
+        }
+        
+        .session-preview {
+            font-size: 0.9em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .session-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .mcpIntegration-tool-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: #f5f5f5;
+        }
+        
+        .server-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .server-header h4 {
+            margin: 0;
+        }
+        
+        .server-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .server-details {
+            font-size: 0.9em;
+        }
+        
+        .server-details p {
+            margin: 4px 0;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .chat-panel {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background-color: white;
+            border-right: 1px solid #ddd;
+        }
+        .info-panel {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f0f4f8;
+        }
+        .chat-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .chat-header h1 {
+            margin: 0;
+            color: #4a6fa5;
+        }
+        .identity-selector {
+            margin-left: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .identity-selector select {
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-left: 5px;
+        }
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        .chat-input {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+        .chat-input button {
+            padding: 12px 20px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .chat-input button:hover {
+            background-color: #3a5a85;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user {
+            background-color: #e1f5fe;
+            margin-left: auto;
+            text-align: right;
+            border-bottom-right-radius: 0;
+        }
+        .assistant {
+            background-color: #f1f1f1;
+            margin-right: auto;
+            border-bottom-left-radius: 0;
+        }
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #4a6fa5;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        button.action {
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        button.action:hover {
+            background-color: #3a5a85;
+        }
+        .status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ddd;
+        }
+        .status-online {
+            background-color: #4CAF50;
+        }
+        .status-offline {
+            background-color: #f44336;
+        }
+        .memory-item, .thread-item, .identity-item {
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: #fafbfc;
+        }
+        #sessions-list {
+            max-height: 300px; /* Or any suitable height */
+            overflow-y: auto; /* Add a scrollbar when needed */
+        }
+        .identity-item.active {
+            border: 1px solid #4a6fa5;
+            background-color: #e6f2ff;
+        }
+        .thread-item h3, .identity-item h3 {
+            margin-top: 0;
+            color: #4a6fa5;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .memory-item .relevance {
+            font-size: 0.8em;
+            color: #666;
+        }
+        .identity-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .identity-form {
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: none; /* Hidden by default */
+        }
+        .identity-form.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="chat-panel">
+            <div class="chat-header">
+                <h1>Cognisphere ADK</h1>
+                <div class="status" style="margin-left: 15px;">
+                    <div class="status-indicator" id="status-indicator"></div>
+                    <span id="status-text">Checking status...</span>
+                </div>
+                <div class="identity-selector">
+                    <label for="identity-select">Identity:</label>
+                    <select id="identity-select">
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chat-history" id="chat-history"></div>
+            <div class="chat-input">
+                <input type="text" id="user-input" placeholder="Ask Cognisphere something..." />
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+        <div class="info-panel">
+            
+            <div class="section">
+                <h2>System Status</h2>
+                <div id="component-status">Loading...</div>
+            </div>
+            
+            <div class="section">
+                    <h2>Conversation Sessions</h2>
+                    <div id="sessions-list">Loading...</div>
+                    <div class="session-actions">
+                        <button class="action" id="new-session-btn">New Conversation</button>
+                        <button class="action" id="refresh-sessions-btn">Refresh</button>
+                    </div>
+            </div>
+            
+            
+            <div class="section">
+                <h2>Current Identity</h2>
+                <div id="current-identity">No active identity</div>
+                <button class="action" id="create-identity-button">Create New Identity</button>
+                
+                <!-- Identity Creation Form -->
+                <div class="identity-form" id="identity-form">
+                    <div class="form-group">
+                        <label for="identity-name">Name:</label>
+                        <input type="text" id="identity-name" placeholder="Name of identity">
+                    </div>
+                    <div class="form-group">
+                        <label for="identity-description">Description:</label>
+                        <textarea id="identity-description" placeholder="Brief description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="identity-tone">Tone:</label>
+                        <select id="identity-tone">
+                            <option value="friendly">Friendly</option>
+                            <option value="professional">Professional</option>
+                            <option value="casual">Casual</option>
+                            <option value="formal">Formal</option>
+                            <option value="enthusiastic">Enthusiastic</option>
+                            <option value="serious">Companion</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="identity-personality">Personality:</label>
+                        <input type="text" id="identity-personality" placeholder="e.g., curious, analytical, creative">
+                    </div>
+                    <div class="form-actions">
+                        <button class="action" id="cancel-identity">Cancel</button>
+                        <button class="action" id="save-identity">Create Identity</button>
+                    </div>
+                </div>
+            </div>
+            <div class="section">
+                <h2>Identities</h2>
+                <div id="identities">Loading...</div>
+                <button class="action" id="refresh-identities-button">Refresh Identities</button>
+            </div>
+            <div class="section">
+                <h2>Memories</h2>
+                <div id="memories">Loading...</div>
+                <button class="action" id="recall-button">Recall Memories</button>
+            </div>
+            <div class="section" id="mcpIntegration-section">
+    <h2>MCP Integration</h2>
+    <div class="mcpIntegration-status">
+        <div class="status">
+            <div class="status-indicator" id="mcpIntegration-status-indicator"></div>
+            <span id="mcpIntegration-status-text">MCP Integration Status</span>
+        </div>
+        <button class="action" id="mcpIntegration-config-toggle">Configure MCP</button>
+    </div>
+    
+    <!-- MCP Configuration Panel (Hidden by default) -->
+    <div class="mcpIntegration-config-panel" id="mcpIntegration-config-panel" style="display: none;">
+        <h3>Connected MCP Servers</h3>
+        <div id="mcpIntegration-server-list">
+            <p>No servers connected</p>
+        </div>
+        
+        <h3>Add New MCP Server</h3>
+        <div class="form-group">
+            <label for="mcpIntegration-server-name">Server Name (optional):</label>
+            <input type="text" id="mcpIntegration-server-name" placeholder="e.g., filesystem-server">
+        </div>
+        <div class="form-group">
+            <label for="mcpIntegration-server-command">Command:</label>
+            <input type="text" id="mcpIntegration-server-command" placeholder="e.g., npx">
+        </div>
+        <div class="form-group">
+            <label for="mcpIntegration-server-args">Arguments (comma-separated):</label>
+            <input type="text" id="mcpIntegration-server-args" placeholder="e.g., -y,@modelcontextprotocol/server-filesystem,/path/to/folder">
+        </div>
+        <div class="form-group">
+            <label for="mcpIntegration-server-package">Install Package (optional):</label>
+            <input type="text" id="mcpIntegration-server-package" placeholder="e.g., @modelcontextprotocol/server-filesystem">
+        </div>
+        <div class="form-group">
+            <label for="mcpIntegration-server-env">Environment Variables (JSON):</label>
+            <textarea id="mcpIntegration-server-env" placeholder='{"API_KEY": "your-key-here"}'></textarea>
+        </div>
+        <div class="form-actions">
+            <button class="action" id="mcpIntegration-add-server-btn">Add Server</button>
+            <button class="action" id="mcpIntegration-cancel-btn">Cancel</button>
+        </div>
+    </div>  
+        <!-- MCP Tools Panel (Hidden by default) -->
+        <div class="mcpIntegration-tools-panel" id="mcpIntegration-tools-panel" style="display: none;">
+            <h3>Available MCP Tools</h3>
+            <div id="mcpIntegration-tools-list">
+                <p>No MCP tools available</p>
+            </div>
+        </div> 
+    </div>
+            <div class="section">
+    <h2>AIRA Network</h2>
+    <div class="status">
+        <div class="status-indicator" id="aira-status-indicator"></div>
+        <span id="aira-status-text">Not connected</span>
+    </div>
+    <div id="aira-connect-form">
+        <div class="form-group">
+            <label for="aira-hub-url">AIRA Hub URL:</label>
+            <input type="text" id="aira-hub-url" placeholder="http://localhost:8000" value="http://localhost:8000">
+        </div>
+        <div class="form-group">
+            <label for="aira-agent-url">Agent URL (this server):</label>
+            <input type="text" id="aira-agent-url" placeholder="http://localhost:5000" value="http://localhost:5000">
+        </div>
+        <button class="action" id="aira-connect-btn">Connect to AIRA Hub</button>
+    </div>
+    <div id="aira-connected-ui" style="display: none;">
+        <button class="action" id="aira-disconnect-btn">Disconnect</button>
+        <button class="action" id="aira-discover-btn">Discover Agents</button>
+    </div>
+    
+    <div id="aira-discovery-results" style="display: none;">
+        <h3>Discovered Agents</h3>
+        <div id="aira-agents-list"></div>
+    </div>
+    
+    <div id="aira-agent-tools" style="display: none;">
+        <h3>Agent Tools</h3>
+        <div id="aira-tools-list"></div>
+    </div>
+</div>
+            <div class="section">
+                <h2>Narrative Threads</h2>
+                <div id="narrative-threads">Loading...</div>
+                <button class="action" id="get-threads-button">Update Threads</button>
+            </div>
+            
+            
+                
+           
+       
+    </div>
+
+   <script>
+// Global variables
+const USER_ID = 'default_user';
+const DEFAULT_SESSION_ID = 'default_session';
+let currentSessionId = localStorage.getItem('currentSessionId') || DEFAULT_SESSION_ID;
+
+// Helper function for API calls
+async function fetchAPI(url, method = 'GET', data = null) {
+    const options = {
+        method,
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+
+    if (data) {
+        options.body = JSON.stringify(data);
+    }
+
+    try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('API Error:', error);
+        return { error: error.message };
+    }
+}
+
+// Initialize the UI
+document.addEventListener('DOMContentLoaded', () => {
+    console.log(`Initializing with session ID from localStorage: ${currentSessionId}`);
+
+    // Cache DOM elements
+    const chatHistory = document.getElementById('chat-history');
+    const userInput = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const statusIndicator = document.getElementById('status-indicator');
+    const statusText = document.getElementById('status-text');
+    const componentStatus = document.getElementById('component-status');
+    const memoriesDiv = document.getElementById('memories');
+    const narrativeThreadsDiv = document.getElementById('narrative-threads');
+    const recallButton = document.getElementById('recall-button');
+    const getThreadsButton = document.getElementById('get-threads-button');
+    
+    // Sessions DOM elements
+    const sessionsListDiv = document.getElementById('sessions-list');
+    const newSessionBtn = document.getElementById('new-session-btn');
+    const refreshSessionsBtn = document.getElementById('refresh-sessions-btn');
+    
+    // MCP elements
+    const mcpStatusIndicator = document.getElementById('mcpIntegration-status-indicator');
+    const mcpStatusText = document.getElementById('mcpIntegration-status-text');
+    const mcpConfigToggle = document.getElementById('mcpIntegration-config-toggle');
+    const mcpConfigPanel = document.getElementById('mcpIntegration-config-panel');
+    const mcpServerList = document.getElementById('mcpIntegration-server-list');
+    const mcpToolsPanel = document.getElementById('mcpIntegration-tools-panel');
+    const mcpToolsList = document.getElementById('mcpIntegration-tools-list');
+    const mcpAddServerBtn = document.getElementById('mcpIntegration-add-server-btn');
+    const mcpCancelBtn = document.getElementById('mcpIntegration-cancel-btn');
+    
+    // Identity-related elements
+    const identitySelect = document.getElementById('identity-select');
+    const identitiesDiv = document.getElementById('identities');
+    const currentIdentityDiv = document.getElementById('current-identity');
+    const refreshIdentitiesButton = document.getElementById('refresh-identities-button');
+    const createIdentityButton = document.getElementById('create-identity-button');
+    const identityForm = document.getElementById('identity-form');
+    const saveIdentityButton = document.getElementById('save-identity');
+    const cancelIdentityButton = document.getElementById('cancel-identity');
+
+    // AIRA Network elements
+    const airaStatusIndicator = document.getElementById('aira-status-indicator');
+    const airaStatusText = document.getElementById('aira-status-text');
+    const airaConnectForm = document.getElementById('aira-connect-form');
+    const airaConnectedUI = document.getElementById('aira-connected-ui');
+    const airaHubUrlInput = document.getElementById('aira-hub-url');
+    const airaAgentUrlInput = document.getElementById('aira-agent-url');
+    const airaConnectBtn = document.getElementById('aira-connect-btn');
+    const airaDisconnectBtn = document.getElementById('aira-disconnect-btn');
+    const airaDiscoverBtn = document.getElementById('aira-discover-btn');
+    const airaDiscoveryResults = document.getElementById('aira-discovery-results');
+    const airaAgentsList = document.getElementById('aira-agents-list');
+    const airaAgentTools = document.getElementById('aira-agent-tools');
+    const airaToolsList = document.getElementById('aira-tools-list');
+
+    // Initialize session
+    initializeSession();
+
+    // ------------ Session Management Functions ------------
+
+    // Initialize session
+    async function initializeSession() {
+        // First, try to get an existing session ID from localStorage
+        let storedSessionId = localStorage.getItem('currentSessionId');
+
+        if (storedSessionId && storedSessionId !== 'undefined') {
+            // Use the stored session ID
+            currentSessionId = storedSessionId;
+            console.log(`Retrieved session ID from storage: ${currentSessionId}`);
+        } else {
+            // Generate a new session ID if none exists or it's invalid
+            await createNewSession();
+            return; // createNewSession already loads messages and updates UI
+        }
+
+        // Load available sessions for the UI
+       loadSessions();
+
+        // Verify the session with the backend and load its messages
+        try {
+            const session = await fetchAPI(`/api/session/messages?user_id=${USER_ID}&session_id=${currentSessionId}`);
+
+            // If session exists, load its messages
+            if (!session.error) {
+                chatHistory.innerHTML = ''; // Clear history before loading
+
+                if (session.messages && session.messages.length > 0) {
+                    // Add all messages to chat history
+                    for (const message of session.messages) {
+                        addMessageToChat(message.role, message.content);
+                    }
+                } else {
+                    // Empty session, add welcome message
+                    addMessageToChat('assistant', 'Welcome to a new conversation! How can I help you today?');
+                }
+            } else {
+                // Session not found on the backend, create a new one
+                console.log("Stored session not found on server, creating new session");
+                await createNewSession();
+                return;
+            }
+        } catch (error) {
+            console.error('Session initialization error:', error);
+            await createNewSession();
+            return;
+        }
+
+        // Update other UI components
+        await updateSystemStatus();
+        await updateMemories();
+        await updateNarrativeThreads();
+        await updateIdentities();
+
+        // Initial refresh for MCP and AIRA
+        refreshMcpServers();
+        refreshMcpTools();
+        checkAiraStatus();
+    }
+
+    // Load available sessions
+    // Replace the loadSessions function with this version that ensures click handlers work
+    async function loadSessions() {
+        sessionsListDiv.innerHTML = '<div class="loading">Loading sessions...</div>';
+        console.log('Fetching sessions for user:', USER_ID);
+
+        try {
+            const result = await fetchAPI(`/api/sessions?user_id=${USER_ID}`);
+            console.log('Received sessions data:', result);
+
+            if (result.error) {
+                sessionsListDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+                return;
+            }
+
+            if (!result.sessions || result.sessions.length === 0) {
+                sessionsListDiv.innerHTML = '<p>No conversation history found.</p>';
+                return;
+            }
+
+            // Create sessions list
+            let sessionsHTML = '';
+            console.log('Current active session ID:', currentSessionId);
+
+            // Create a direct HTML string without event handlers
+            for (const session of result.sessions) {
+                const timestamp = new Date(session.last_update * 1000).toLocaleString();
+                const isActive = session.id === currentSessionId;
+                const activeClass = isActive ? 'active' : '';
+
+                sessionsHTML += `
+                    <div class="session-item ${activeClass}" data-id="${session.id}">
+                        <div class="session-header">
+                            <span class="session-time">${timestamp}</span>
+                            ${isActive ? '<span class="active-badge">Active</span>' : ''}
+                        </div>
+                        <div class="session-preview">${session.preview || 'Empty conversation'}</div>
+                    </div>
+                `;
+            }
+
+            // Update the DOM
+            sessionsListDiv.innerHTML = sessionsHTML;
+            console.log('Sessions HTML rendered, adding click handlers to', result.sessions.length, 'sessions');
+
+            // CRITICAL: Add click handlers AFTER updating innerHTML
+            document.querySelectorAll('.session-item').forEach(item => {
+                console.log('Adding click handler to session:', item.dataset.id);
+                item.addEventListener('click', function() {
+                    console.log(`Session item clicked: ${this.dataset.id}`);
+                    const sessionId = this.dataset.id;
+                    if (sessionId !== currentSessionId) {
+                        switchToSession(sessionId);
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('Error loading sessions:', error);
+            sessionsListDiv.innerHTML = '<div class="error">Error loading sessions. Please try again.</div>';
+        }
+    }
+
+    // Switch to a different session
+    async function loadSessions() {
+        console.log('Loading all sessions for user:', USER_ID);
+        sessionsListDiv.innerHTML = '<div class="loading">Loading all sessions...</div>';
+
+        try {
+            // Direct API call to get ALL sessions
+            const response = await fetch(`/api/sessions/all?user_id=${USER_ID}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('ALL sessions data received:', data);
+
+            // Check if we have sessions
+            if (!data.sessions || data.sessions.length === 0) {
+                sessionsListDiv.innerHTML = '<p>No sessions found.</p>';
+                return;
+            }
+
+            // Build HTML directly - keep it simple
+            let html = '';
+            for (const session of data.sessions) {
+                const isActive = session.id === currentSessionId;
+                const activeClass = isActive ? 'active' : '';
+
+                html += `
+                    <div class="session-item ${activeClass}" id="session-${session.id}" onclick="handleSessionClick('${session.id}')">
+                        <div class="session-header">
+                            <span class="session-time">${new Date(session.timestamp * 1000).toLocaleString()}</span>
+                            ${isActive ? '<span class="active-badge">Active</span>' : ''}
+                        </div>
+                        <div class="session-preview">${session.title || 'Conversation ' + session.id}</div>
+                    </div>
+                `;
+            }
+
+            // Set HTML content directly
+            sessionsListDiv.innerHTML = html;
+            console.log(`Displayed ${data.sessions.length} sessions`);
+
+        } catch (error) {
+            console.error('Session loading error:', error);
+            sessionsListDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+        }
+    }
+
+    // Global click handler function (much more reliable)
+    window.handleSessionClick = function(sessionId) {
+        console.log('Session clicked:', sessionId);
+        if (sessionId === currentSessionId) {
+            console.log('Already on this session');
+            return;
+        }
+
+        // Switch to session
+        switchToSession(sessionId);
+    };
+
+    async function switchToSession(sessionId) {
+        console.log(`Switching to session: ${sessionId}`);
+
+        if (sessionId === currentSessionId) {
+            console.log('Already on this session');
+            return;
+        }
+
+        try {
+            // Update the current session ID
+            currentSessionId = sessionId;
+
+            // Save to localStorage
+            localStorage.setItem('currentSessionId', currentSessionId);
+
+            // Load messages for this session
+            await loadSessionMessages(sessionId);
+
+            // Update UI to show which session is active
+            document.querySelectorAll('.session-item').forEach(item => {
+                if (item.dataset.id === sessionId) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+
+            // Also refresh related data for this session
+            updateMemories();
+            updateNarrativeThreads();
+
+            console.log(`Successfully switched to session: ${sessionId}`);
+        } catch (error) {
+            console.error('Error switching sessions:', error);
+            addMessageToChat('assistant', `Error loading session: ${error.message}`);
+        }
+    }
+
+    // Load messages for a specific session
+    async function loadSessionMessages(sessionId) {
+        try {
+            const response = await fetchAPI(`/api/session/messages?user_id=${USER_ID}&session_id=${sessionId}`);
+
+            if (response.error) {
+                addMessageToChat('assistant', `Error loading conversation: ${response.error}`);
+                return;
+            }
+
+            // Clear existing chat history
+            chatHistory.innerHTML = '';
+
+            if (!response.messages || response.messages.length === 0) {
+                addMessageToChat('assistant', 'This is the beginning of a new conversation.');
+                return;
+            }
+
+            // Add all messages to chat history
+            for (const message of response.messages) {
+                addMessageToChat(message.role, message.content);
+            }
+
+            // Scroll to bottom
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        } catch (error) {
+            console.error('Error loading session messages:', error);
+            addMessageToChat('assistant', 'Error loading conversation history.');
+        }
+    }
+
+    // Create a new session
+    async function createNewSession() {
+        try {
+            // Request a new session from the backend
+            const response = await fetchAPI('/api/sessions/create', 'POST', {
+                user_id: USER_ID
+            });
+
+            if (response.session_id) {
+                currentSessionId = response.session_id;
+                localStorage.setItem('currentSessionId', currentSessionId);
+
+                console.log(`Created new session: ${currentSessionId}`);
+
+                // Clear chat history
+                chatHistory.innerHTML = '';
+
+                // Add welcome message
+                addMessageToChat('assistant', 'Welcome to a new conversation! How can I help you today?');
+
+                // Refresh the sessions list and highlight the new session
+                await loadSessions();
+
+                // Update other UI components with the new session context
+                await updateMemories();
+                await updateNarrativeThreads();
+
+            } else {
+                console.error('Failed to create new session:', response);
+                addMessageToChat('assistant', 'Error creating new session. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error creating new session:', error);
+            addMessageToChat('assistant', 'Error creating new session. Please try again.');
+        }
+    }
+
+    // ------------ Chat Functions ------------
+
+    // Send a message to the AI
+    async function sendMessage() {
+        const message = userInput.value.trim();
+        if (!message) return;
+
+        // Add user message to chat
+        addMessageToChat('user', message);
+        userInput.value = '';
+
+        // Show thinking indicator
+        addMessageToChat('assistant', 'Thinking...', 'thinking');
+
+        try {
+            // Send to backend WITH CURRENT SESSION ID
+            const response = await fetchAPI('/api/chat', 'POST', {
+                message,
+                user_id: USER_ID,
+                session_id: currentSessionId
+            });
+
+            // Remove thinking indicator
+            const thinkingElement = document.querySelector('.thinking');
+            if (thinkingElement) {
+                chatHistory.removeChild(thinkingElement);
+            }
+
+            if (response.error) {
+                addMessageToChat('assistant', `Error: ${response.error}`);
+            } else {
+                addMessageToChat('assistant', response.response);
+
+                // Refresh UI data after interaction
+                loadSessions();
+                updateMemories();
+                updateNarrativeThreads();
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+
+            // Remove thinking indicator
+            const thinkingElement = document.querySelector('.thinking');
+            if (thinkingElement) {
+                chatHistory.removeChild(thinkingElement);
+            }
+
+            addMessageToChat('assistant', `Error: ${error.message}`);
+        }
+    }
+
+    // Add a message to the chat history
+    function addMessageToChat(role, content, className) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${role}${className ? ' ' + className : ''}`;
+        messageDiv.textContent = content;
+        chatHistory.appendChild(messageDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    // ------------ System Status Functions ------------
+
+    // Update system status
+    async function updateSystemStatus() {
+        const status = await fetchAPI('/api/status');
+
+        if (status.error) {
+            statusIndicator.className = 'status-indicator status-offline';
+            statusText.textContent = 'System Offline';
+            return;
+        }
+
+        statusIndicator.className = 'status-indicator status-online';
+        statusText.textContent = 'System Online';
+
+        // Update component status
+        const components = status.components;
+        let componentHTML = '<ul style="list-style: none; padding: 0;">';
+        for (const [name, isActive] of Object.entries(components)) {
+            const statusClass = isActive ? 'status-online' : 'status-offline';
+            const label = name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            componentHTML += `<li style="display: flex; align-items: center; margin-bottom: 5px;">
+                <div class="status-indicator ${statusClass}" style="margin-right: 10px;"></div> ${label}
+            </li>`;
+        }
+        componentHTML += '</ul>';
+        componentStatus.innerHTML = componentHTML;
+    }
+
+    // ------------ Memory Functions ------------
+
+    // Update memories display
+    async function updateMemories() {
+        memoriesDiv.innerHTML = '<div class="loading">Loading memories...</div>';
+
+        try {
+            const result = await fetchAPI(`/api/memories?user_id=${USER_ID}&session_id=${currentSessionId}`);
+
+            if (result.error) {
+                memoriesDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+                return;
+            }
+
+            if (!result.memories || result.memories.length === 0) {
+                memoriesDiv.innerHTML = '<p>No memories recalled yet.</p>';
+                return;
+            }
+
+            let memoriesHTML = '';
+            for (const memory of result.memories) {
+                const relevancePercent = Math.round((memory.relevance || 0) * 100);
+                const identityName = memory.identity_name ? `<div class="identity">Identity: ${memory.identity_name}</div>` : '';
+
+                memoriesHTML += `
+                    <div class="memory-item">
+                        <div>${memory.content}</div>
+                        ${identityName}
+                        <div class="relevance">Type: ${memory.type || 'unknown'}, Emotion: ${memory.emotion || 'neutral'}, Relevance: ${relevancePercent}%</div>
+                    </div>
+                `;
+            }
+
+            memoriesDiv.innerHTML = memoriesHTML;
+        } catch (error) {
+            console.error('Error updating memories:', error);
+            memoriesDiv.innerHTML = `<div class="error">Error loading memories: ${error.message}</div>`;
+        }
+    }
+
+    // ------------ Narrative Functions ------------
+
+    // Update narrative threads display
+    async function updateNarrativeThreads() {
+        narrativeThreadsDiv.innerHTML = '<div class="loading">Loading threads...</div>';
+
+        try {
+            const result = await fetchAPI(`/api/narratives?user_id=${USER_ID}&session_id=${currentSessionId}`);
+
+            if (result.error) {
+                narrativeThreadsDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+                return;
+            }
+
+            if (!result.threads || result.threads.length === 0) {
+                narrativeThreadsDiv.innerHTML = '<p>No active narrative threads.</p>';
+                return;
+            }
+
+            let threadsHTML = '';
+            for (const thread of result.threads) {
+                const lastUpdated = new Date(thread.last_updated).toLocaleString();
+
+                // Get linked identities if available
+                let identitiesHTML = '';
+                if (thread.linked_identity_names && thread.linked_identity_names.length > 0) {
+                    identitiesHTML = `<div><strong>Linked Identities:</strong> ${thread.linked_identity_names.join(', ')}</div>`;
+                }
+
+                // Get last event if available
+                let lastEventText = 'No events yet';
+                if (thread.events && thread.events.length > 0) {
+                    const lastEvent = thread.events[thread.events.length - 1];
+                    lastEventText = lastEvent.content || 'Event with no content';
+                }
+
+                threadsHTML += `
+                    <div class="thread-item">
+                        <h3>${thread.title}</h3>
+                        <div>${thread.description}</div>
+                        <div><strong>Theme:</strong> ${thread.theme}</div>
+                        ${identitiesHTML}
+                        <div><strong>Latest:</strong> ${lastEventText}</div>
+                        <div><strong>Last updated:</strong> ${lastUpdated}</div>
+                    </div>
+                `;
+            }
+
+            narrativeThreadsDiv.innerHTML = threadsHTML;
+        } catch (error) {
+            console.error('Error updating narrative threads:', error);
+            narrativeThreadsDiv.innerHTML = `<div class="error">Error loading threads: ${error.message}</div>`;
+        }
+    }
+
+    // ------------ Identity Functions ------------
+
+    // Update identities display
+    async function updateIdentities() {
+        identitiesDiv.innerHTML = '<div class="loading">Loading identities...</div>';
+
+        try {
+            const result = await fetchAPI(`/api/identities?user_id=${USER_ID}&session_id=${currentSessionId}`);
+
+            if (result.error) {
+                identitiesDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+                identitySelect.innerHTML = '<option value="">Error loading</option>';
+                return;
+            }
+
+            if (!result.identities || result.identities.length === 0) {
+                identitiesDiv.innerHTML = '<p>No identities created yet.</p>';
+                identitySelect.innerHTML = '<option value="">No identities</option>';
+                return;
+            }
+
+            // Update identities list
+            let identitiesHTML = '';
+            identitySelect.innerHTML = ''; // Clear previous options
+
+            for (const identity of result.identities) {
+                const isActive = identity.is_active;
+                const activeClass = isActive ? 'active' : '';
+                const activeText = isActive ? ' (Active)' : '';
+
+                // Add to dropdown
+                const option = document.createElement('option');
+                option.value = identity.id;
+                option.textContent = identity.name + activeText;
+                option.selected = isActive;
+                identitySelect.appendChild(option);
+
+                // Add to identities section
+                identitiesHTML += `
+                    <div class="identity-item ${activeClass}">
+                        <h3>${identity.name}${activeText}</h3>
+                        <div>${identity.description || 'No description'}</div>
+                        <div><strong>Type:</strong> ${identity.type}</div>
+                        <div class="identity-actions">
+                            ${!isActive ?
+                                `<button class="action switch-identity" data-id="${identity.id}">Switch to this identity</button>` :
+                                '<span>Current identity</span>'}
+                        </div>
+                    </div>
+                `;
+            }
+
+            identitiesDiv.innerHTML = identitiesHTML;
+
+            // Update current identity display
+            const activeIdentity = result.identities.find(i => i.is_active);
+            if (activeIdentity) {
+                currentIdentityDiv.innerHTML = `
+                    <div class="identity-item active">
+                        <h3>${activeIdentity.name}</h3>
+                        <div>${activeIdentity.description || 'No description'}</div>
+                        <div><strong>Type:</strong> ${activeIdentity.type}</div>
+                    </div>
+                `;
+            } else {
+                currentIdentityDiv.innerHTML = '<p>No active identity</p>';
+            }
+
+            // Add event listeners to switch identity buttons
+            document.querySelectorAll('.switch-identity').forEach(button => {
+                button.addEventListener('click', async () => {
+                    const identityId = button.dataset.id;
+                    await switchIdentity(identityId);
+                });
+            });
+        } catch (error) {
+            console.error('Error updating identities:', error);
+            identitiesDiv.innerHTML = `<div class="error">Error loading identities: ${error.message}</div>`;
+            identitySelect.innerHTML = '<option value="">Error loading</option>';
+        }
+    }
+
+    // Switch to a different identity
+    async function switchIdentity(identityId) {
+        // Show loading state
+        currentIdentityDiv.innerHTML = '<div class="loading">Switching identity...</div>';
+
+        try {
+            // Request identity switch
+            const result = await fetchAPI('/api/identities/switch', 'POST', {
+                user_id: USER_ID,
+                session_id: currentSessionId,
+                identity_id: identityId
+            });
+
+            // Handle response
+            if (result.error) {
+                currentIdentityDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+                return;
+            }
+
+            // Add system message about identity switch
+            addMessageToChat('assistant', `Switched to identity: ${result.active_identity_name}`);
+
+            // Refresh identities
+            updateIdentities();
+
+            // Also refresh memories and narratives as they may be filtered by identity
+            updateMemories();
+            updateNarrativeThreads();
+        } catch (error) {
+            console.error('Error switching identity:', error);
+            currentIdentityDiv.innerHTML = `<div class="error">Error switching identity: ${error.message}</div>`;
+        }
+    }
+
+    // ------------ MCP Functions ------------
+
+    // Toggle MCP configuration panel
+    mcpConfigToggle.addEventListener('click', () => {
+        const isVisible = mcpConfigPanel.style.display !== 'none';
+        mcpConfigPanel.style.display = isVisible ? 'none' : 'block';
+        mcpConfigToggle.textContent = isVisible ? 'Configure MCP' : 'Hide Configuration';
+
+        // If showing, refresh server list
+        if (!isVisible) {
+            refreshMcpServers();
+        }
+    });
+
+    // Cancel button for MCP config
+    mcpCancelBtn.addEventListener('click', () => {
+        mcpConfigPanel.style.display = 'none';
+        mcpConfigToggle.textContent = 'Configure MCP';
+
+        // Clear input fields
+        document.getElementById('mcpIntegration-server-name').value = '';
+        document.getElementById('mcpIntegration-server-command').value = '';
+        document.getElementById('mcpIntegration-server-args').value = '';
+        document.getElementById('mcpIntegration-server-package').value = '';
+        document.getElementById('mcpIntegration-server-env').value = '';
+    });
+
+    // Add MCP server
+    // Add MCP server
+	mcpAddServerBtn.addEventListener('click', async () => {
+		// Get input values
+		const name = document.getElementById('mcpIntegration-server-name').value.trim();
+		const command = document.getElementById('mcpIntegration-server-command').value.trim();
+		const argsString = document.getElementById('mcpIntegration-server-args').value.trim();
+		const packageName = document.getElementById('mcpIntegration-server-package').value.trim();
+		const envJson = document.getElementById('mcpIntegration-server-env').value.trim();
+
+		// Validate required fields
+		if (!command) {
+			alert('Command is required');
+			return;
+		}
+
+		// Parse arguments
+		const args = argsString ? argsString.split(',').map(arg => arg.trim()) : [];
+
+		// Parse environment variables
+		let env = {};
+		if (envJson) {
+			try {
+				env = JSON.parse(envJson);
+			} catch (e) {
+				alert('Invalid JSON for environment variables');
+				return;
+			}
+		}
+
+		// Show loading state
+		mcpAddServerBtn.disabled = true;
+		mcpAddServerBtn.textContent = 'Adding Server...';
+
+		try {
+			// First test if the MCP routes are working
+			const testResponse = await fetch('/api/mcp/test');
+			const testResult = await testResponse.json();
+
+			if (!testResponse.ok) {
+				console.error("MCP routes test failed:", testResult);
+				alert(`MCP routes not working: ${testResult.error || 'Unknown error'}`);
+				return;
+			}
+
+			if (!testResult.mcp_available) {
+				alert('MCP integration is not available on the server');
+				return;
+			}
+
+			// Send request to add server
+			const response = await fetch('/api/mcp/servers', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					name,
+					command,
+					args,
+					env,
+					install_package: packageName
+				})
+			});
+
+			const result = await response.json();
+
+			if (response.ok) {
+				alert('MCP server added successfully');
+
+				// Clear input fields
+				document.getElementById('mcpIntegration-server-name').value = '';
+				document.getElementById('mcpIntegration-server-command').value = '';
+				document.getElementById('mcpIntegration-server-args').value = '';
+				document.getElementById('mcpIntegration-server-package').value = '';
+				document.getElementById('mcpIntegration-server-env').value = '';
+
+				// Refresh server list
+				refreshMcpServers();
+			} else {
+				alert(`Error adding server: ${result.error || 'Unknown error'}`);
+			}
+		} catch (e) {
+			alert(`Error adding server: ${e.message}`);
+		} finally {
+			// Reset button
+			mcpAddServerBtn.disabled = false;
+			mcpAddServerBtn.textContent = 'Add Server';
+		}
+	});
+
+    // Disconnect from an MCP server
+    async function disconnectServer(serverId) {
+        try {
+            const response = await fetch(`/api/mcp/servers/${serverId}/disconnect`, {
+                method: 'POST'
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                console.log(`Disconnected from server ${serverId}`);
+                return true;
+            } else {
+                alert(`Error disconnecting from server: ${result.error || 'Unknown error'}`);
+                return false;
+            }
+        } catch (e) {
+            alert(`Error disconnecting from server: ${e.message}`);
+            return false;
+        }
+    }
+
+    // Remove an MCP server
+    async function removeServer(serverId) {
+        try {
+            const response = await fetch(`/api/mcp/servers/${serverId}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                console.log(`Removed server ${serverId}`);
+                return true;
+            } else {
+                alert(`Error removing server: ${result.error || 'Unknown error'}`);
+                return false;
+            }
+        } catch (e) {
+            alert(`Error removing server: ${e.message}`);
+            return false;
+        }
+    }
+
+    // Show MCP tools
+    function showMcpTools(tools) {
+        // Show tools panel
+        mcpToolsPanel.style.display = 'block';
+
+        // Update tools list
+        if (!tools || tools.length === 0) {
+            mcpToolsList.innerHTML = '<p>No MCP tools available</p>';
+        } else {
+            mcpToolsList.innerHTML = '';
+
+            tools.forEach(tool => {
+                const toolItem = document.createElement('div');
+                toolItem.className = 'mcpIntegration-tool-item';
+
+                toolItem.innerHTML = `
+                    <h4>${tool.name}</h4>
+                    <p>${tool.description || 'No description available'}</p>
+                    <p><small>${tool.is_long_running ? 'Long running' : 'Standard'} tool</small></p>
+                `;
+
+                mcpToolsList.appendChild(toolItem);
+            });
+        }
+    }
+
+    // Refresh MCP tools
+    async function refreshMcpTools() {
+        try {
+            const response = await fetch('/api/mcp/tools');
+            const data = await response.json();
+
+            if (response.ok) {
+                if (data.count > 0) {
+                    showMcpTools(data.tools);
+                } else {
+                    mcpToolsPanel.style.display = 'none';
+                }
+            }
+        } catch (e) {
+            console.error('Error fetching MCP tools:', e);
+        }
+    }
+
+    // ------------ AIRA Network Functions ------------
+
+    // Check AIRA status
+    async function checkAiraStatus() {
+        try {
+            const response = await fetch('/api/aira/status');
+            const result = await response.json();
+
+            updateAiraStatus(result.connected, result.hub_url);
+        } catch (error) {
+            console.error('Error checking AIRA status:', error);
+            updateAiraStatus(false);
+        }
+    }
+
+    // Update AIRA status UI
+    function updateAiraStatus(connected, hubUrl = '') {
+        if (connected) {
+            airaStatusIndicator.className = 'status-indicator status-online';
+            airaStatusText.textContent = `Connected to ${hubUrl}`;
+            airaConnectForm.style.display = 'none';
+            airaConnectedUI.style.display = 'block';
+        } else {
+            airaStatusIndicator.className = 'status-indicator status-offline';
+            airaStatusText.textContent = 'Not connected';
+            airaConnectForm.style.display = 'block';
+            airaConnectedUI.style.display = 'none';
+            airaDiscoveryResults.style.display = 'none';
+            airaAgentTools.style.display = 'none';
+        }
+    }
+
+    // Connect to AIRA hub
+    airaConnectBtn.addEventListener('click', async () => {
+        const hubUrl = airaHubUrlInput.value.trim();
+        const agentUrl = airaAgentUrlInput.value.trim();
+
+        if (!hubUrl || !agentUrl) {
+            alert('Please enter both the AIRA Hub URL and Agent URL');
+            return;
+        }
+
+        try {
+            console.log("Attempting to connect to AIRA hub:", hubUrl);
+            airaConnectBtn.disabled = true;
+            airaConnectBtn.textContent = 'Connecting...';
+
+            const response = await fetch('/api/aira/connect', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    hub_url: hubUrl,
+                    agent_url: agentUrl
+                })
+            });
+
+            console.log("AIRA connection response status:", response.status);
+            const result = await response.json();
+            console.log("AIRA connection result:", result);
+
+            if (response.ok) {
+                updateAiraStatus(true, hubUrl);
+                addMessageToChat('assistant', `Connected to AIRA hub at ${hubUrl}`);
+            } else {
+                console.error("Error connecting to AIRA hub:", result.error);
+                alert(`Error connecting to AIRA hub: ${result.error}`);
+                updateAiraStatus(false);
+            }
+        } catch (error) {
+            console.error("Exception in AIRA connection:", error);
+            alert(`Error: ${error.message}`);
+            updateAiraStatus(false);
+        } finally {
+            airaConnectBtn.disabled = false;
+            airaConnectBtn.textContent = 'Connect to AIRA Hub';
+        }
+    });
+
+    // Disconnect from AIRA hub
+    airaDisconnectBtn.addEventListener('click', async () => {
+        try {
+            airaDisconnectBtn.disabled = true;
+
+            const response = await fetch('/api/aira/disconnect', {
+                method: 'POST'
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                updateAiraStatus(false);
+                airaDiscoveryResults.style.display = 'none';
+                airaAgentTools.style.display = 'none';
+                addMessageToChat('assistant', 'Disconnected from AIRA hub');
+            } else {
+                alert(`Error disconnecting from AIRA hub: ${result.error}`);
+            }
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        } finally {
+            airaDisconnectBtn.disabled = false;
+        }
+    });
+
+    // Discover AIRA agents
+    airaDiscoverBtn.addEventListener('click', async () => {
+        try {
+            airaDiscoverBtn.disabled = true;
+            airaDiscoverBtn.textContent = 'Discovering...';
+
+            const response = await fetch('/api/aira/discover/agents');
+
+            const result = await response.json();
+
+            if (response.ok) {
+                displayAgents(result.agents);
+                airaDiscoveryResults.style.display = 'block';
+                addMessageToChat('assistant', `Discovered ${result.agents.length} agents on the AIRA network`);
+            } else {
+                alert(`Error discovering agents: ${result.error}`);
+            }
+        } catch (error) {
+            alert(`Error: ${error.message}`);
+        } finally {
+            airaDiscoverBtn.disabled = false;
+            airaDiscoverBtn.textContent = 'Discover Agents';
+        }
+    });
+
+    // Display discovered agents
+    function displayAgents(agents) {
+        airaAgentsList.innerHTML = '';
+
+        if (agents.length === 0) {
+            airaAgentsList.innerHTML = '<p>No agents found</p>';
+            return;
+        }
+
+        for (const agent of agents) {
+            const agentItem = document.createElement('div');
+            agentItem.className = 'agent-item';
+
+            agentItem.innerHTML = `
+                <h4>${agent.name}</h4>
+                <p>${agent.description || 'No description'}</p>
+                <button class="action discover-tools-btn" data-url="${agent.url}">Discover Tools</button>
+            `;
+
+            airaAgentsList.appendChild(agentItem);
+        }
+
+        // Add event listeners for discover tools buttons
+        document.querySelectorAll('.discover-tools-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const agentUrl = button.dataset.url;
+
+                try {
+                    button.disabled = true;
+                    button.textContent = 'Discovering...';
+
+                    const response = await fetch(`/api/aira/discover/tools?agent_url=${encodeURIComponent(agentUrl)}`);
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        displayTools(result.tools, agentUrl, result.agent_name);
+                        airaAgentTools.style.display = 'block';
+                    } else {
+                        alert(`Error discovering tools: ${result.error}`);
+                    }
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                } finally {
+                    button.disabled = false;
+                    button.textContent = 'Discover Tools';
+                }
+            });
+        });
+    }
+
+    // Display agent tools
+    function displayTools(tools, agentUrl, agentName) {
+        airaToolsList.innerHTML = '';
+
+        if (!tools || tools.length === 0) {
+            airaToolsList.innerHTML = `<p>No tools found for ${agentName || 'agent'}</p>`;
+            return;
+        }
+
+        airaToolsList.innerHTML = `<h4>Tools from ${agentName || 'agent'}</h4>`;
+
+        for (const tool of tools) {
+            const toolItem = document.createElement('div');
+            toolItem.className = 'tool-item';
+
+            // Create parameters display
+            let paramsHtml = '';
+            if (tool.parameters && Object.keys(tool.parameters).length > 0) {
+                paramsHtml = '<div class="tool-params">';
+                for (const [key, value] of Object.entries(tool.parameters)) {
+                    paramsHtml += `<div class="param-item">
+                        <label>${key}:</label>
+                        <input type="text" class="param-input" data-param="${key}">
+                    </div>`;
+                }
+                paramsHtml += '</div>';
+            }
+
+            toolItem.innerHTML = `
+                <h5>${tool.name}</h5>
+                <p>${tool.description || 'No description'}</p>
+                ${paramsHtml}
+                <button class="action invoke-tool-btn" data-agent-url="${agentUrl}" data-tool-name="${tool.name}">Invoke Tool</button>
+            `;
+
+            airaToolsList.appendChild(toolItem);
+        }
+
+        // Add event listeners for invoke tool buttons
+        document.querySelectorAll('.invoke-tool-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const agentUrl = button.dataset.agentUrl;
+                const toolName = button.dataset.toolName;
+
+                // Get parameters
+                const paramInputs = button.parentElement.querySelectorAll('.param-input');
+                const parameters = {};
+
+                paramInputs.forEach(input => {
+                    parameters[input.dataset.param] = input.value.trim();
+                });
+
+                try {
+                    button.disabled = true;
+                    button.textContent = 'Invoking...';
+
+                    const response = await fetch('/api/aira/invoke', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            agent_url: agentUrl,
+                            tool_name: toolName,
+                            parameters: parameters
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        // Add the result to the chat
+                        const resultText = typeof result.result === 'object'
+                            ? JSON.stringify(result.result, null, 2)
+                            : result.result;
+
+                        addMessageToChat('assistant', `Tool result from ${toolName}:\n\n${resultText}`);
+                    } else {
+                        alert(`Error invoking tool: ${result.error}`);
+                    }
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                } finally {
+                    button.disabled = false;
+                    button.textContent = 'Invoke Tool';
+                }
+            });
+        });
+    }
+
+    // ------------ Identity Form Functions ------------
+
+    // Toggle identity creation form
+    createIdentityButton.addEventListener('click', () => {
+        identityForm.classList.add('active');
+    });
+
+    // Cancel identity creation
+    cancelIdentityButton.addEventListener('click', () => {
+        identityForm.classList.remove('active');
+        // Clear form fields
+        document.getElementById('identity-name').value = '';
+        document.getElementById('identity-description').value = '';
+        document.getElementById('identity-personality').value = '';
+    });
+
+    // Save new identity
+    saveIdentityButton.addEventListener('click', async () => {
+        const name = document.getElementById('identity-name').value.trim();
+        const description = document.getElementById('identity-description').value.trim();
+        const tone = document.getElementById('identity-tone').value;
+        const personality = document.getElementById('identity-personality').value.trim();
+
+        if (!name) {
+            alert('Please provide a name for the identity');
+            return;
+        }
+
+        // Construct message to create identity
+        const message = `Create a new identity with these details:
+            Name: ${name}
+            Description: ${description}
+            Tone: ${tone}
+            Personality: ${personality}`;
+
+        // Show thinking indicator
+        addMessageToChat('assistant', 'Creating identity...', 'thinking');
+
+        try {
+            // Send to backend
+            const response = await fetchAPI('/api/chat', 'POST', {
+                message,
+                user_id: USER_ID,
+                session_id: currentSessionId
+            });
+
+            // Remove thinking indicator
+            const thinkingElement = document.querySelector('.thinking');
+            if (thinkingElement) {
+                chatHistory.removeChild(thinkingElement);
+            }
+
+            if (response.error) {
+                addMessageToChat('assistant', `Error: ${response.error}`);
+            } else {
+                addMessageToChat('assistant', response.response);
+
+                // Reset and hide form
+                identityForm.classList.remove('active');
+                document.getElementById('identity-name').value = '';
+                document.getElementById('identity-description').value = '';
+                document.getElementById('identity-personality').value = '';
+
+                // Refresh identities
+                updateIdentities();
+            }
+        } catch (error) {
+            // Remove thinking indicator
+            const thinkingElement = document.querySelector('.thinking');
+            if (thinkingElement) {
+                chatHistory.removeChild(thinkingElement);
+            }
+
+            console.error('Error creating identity:', error);
+            addMessageToChat('assistant', `Error creating identity: ${error.message}`);
+        }
+    });
+
+    // ------------ Event Listeners ------------
+
+    // Chat functionality
+    sendButton.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    // Identity dropdown change handler
+    identitySelect.addEventListener('change', async () => {
+        const selectedId = identitySelect.value;
+        if (selectedId) {
+            await switchIdentity(selectedId);
+        }
+    });
+
+    // Button handlers
+    recallButton.addEventListener('click', () => {
+        memoriesDiv.innerHTML = '<div class="loading">Recalling memories...</div>';
+        updateMemories();
+    });
+
+    getThreadsButton.addEventListener('click', () => {
+        narrativeThreadsDiv.innerHTML = '<div class="loading">Updating threads...</div>';
+        updateNarrativeThreads();
+    });
+
+    refreshIdentitiesButton.addEventListener('click', () => {
+        identitiesDiv.innerHTML = '<div class="loading">Refreshing identities...</div>';
+        updateIdentities();
+    });
+
+    // Session management buttons
+    newSessionBtn.addEventListener('click', async () => {
+        // Show loading state
+        sessionsListDiv.innerHTML = '<div class="loading">Creating new session...</div>';
+
+        try {
+            // Create the new session
+            await createNewSession();
+
+            // The createNewSession function should now handle:
+            // 1. Creating the session on the backend
+            // 2. Setting currentSessionId to the new session
+            // 3. Saving to localStorage
+            // 4. Clearing and initializing chat history
+            // 5. Loading the updated sessions list
+        } catch (error) {
+            console.error('Error creating new session:', error);
+            sessionsListDiv.innerHTML = '<div class="error">Failed to create new session</div>';
+            // Refresh sessions list after a short delay
+            setTimeout(() => loadSessions(), 2000);
+        }
+    });
+    refreshSessionsBtn.addEventListener('click', loadSessions);
+
+    // Refresh status every minute
+    setInterval(updateSystemStatus, 60000);
+});
+
+    // Refresh MCP servers
+    async function refreshMcpServers() {
+        try {
+            // Fetch servers
+            const response = await fetch('/api/mcp/servers');
+            const data = await response.json();
+
+            if (response.ok && data.servers) {
+                // Update MCP status
+                const serversCount = data.servers.length;
+                mcpStatusIndicator.className = `status-indicator ${serversCount > 0 ? 'status-online' : 'status-offline'}`;
+                mcpStatusText.textContent = `MCP Integration: ${serversCount} servers configured`;
+
+                // Update server list
+                if (serversCount === 0) {
+                    mcpServerList.innerHTML = '<p>No servers configured</p>';
+                } else {
+                    mcpServerList.innerHTML = '';
+
+                    data.servers.forEach(server => {
+                        const serverItem = document.createElement('div');
+                        serverItem.className = 'mcpIntegration-server-item';
+
+                        const statusClass = server.status === 'running' ? 'status-online' : 'status-offline';
+
+                        serverItem.innerHTML = `
+                            <div class="server-header">
+                                <div class="status">
+                                    <div class="status-indicator ${statusClass}"></div>
+                                    <h4>${server.id}</h4>
+                                </div>
+                                <div class="server-actions">
+                                    <button class="action connect-server" data-id="${server.id}">
+                                        ${server.status === 'running' ? 'Disconnect' : 'Connect'}
+                                    </button>
+                                    <button class="action remove-server" data-id="${server.id}">Remove</button>
+                                </div>
+                            </div>
+                            <div class="server-details">
+                                <p><strong>Command:</strong> ${server.command} ${server.args.join(' ')}</p>
+                                <p><strong>Status:</strong> ${server.status}</p>
+                                <p><strong>Created:</strong> ${new Date(server.created_at).toLocaleString()}</p>
+                            </div>
+                        `;
+
+                        mcpServerList.appendChild(serverItem);
+                    });
+
+                    // Add event listeners for server actions
+                    document.querySelectorAll('.connect-server').forEach(button => {
+                        button.addEventListener('click', async () => {
+                            const serverId = button.dataset.id;
+                            const isConnected = button.textContent.trim() === 'Disconnect';
+
+                            if (isConnected) {
+                                await disconnectServer(serverId);
+                            } else {
+                                await connectServer(serverId);
+                            }
+
+                            // Refresh server list
+                            refreshMcpServers();
+
+                            // Refresh tools list
+                            refreshMcpTools();
+                        });
+                    });
+
+                    document.querySelectorAll('.remove-server').forEach(button => {
+                        button.addEventListener('click', async () => {
+                            const serverId = button.dataset.id;
+
+                            if (confirm(`Are you sure you want to remove server ${serverId}?`)) {
+                                // First disconnect if connected
+                                try {
+                                    await disconnectServer(serverId);
+                                } catch (e) {
+                                    // Ignore disconnection errors during removal
+                                    console.error(`Error disconnecting server during removal: ${e.message}`);
+                                }
+
+                                // Then remove
+                                await removeServer(serverId);
+
+                                // Refresh server list
+                                refreshMcpServers();
+
+                                // Refresh tools list
+                                refreshMcpTools();
+                            }
+                        });
+                    });
+                }
+            } else {
+                mcpStatusIndicator.className = 'status-indicator status-offline';
+                mcpStatusText.textContent = 'MCP Integration: Error fetching servers';
+            }
+        } catch (e) {
+            mcpStatusIndicator.className = 'status-indicator status-offline';
+            mcpStatusText.textContent = 'MCP Integration: Error fetching servers';
+            console.error('Error fetching MCP servers:', e);
+        }
+    }
+
+    // Connect to an MCP server
+	async function connectServer(serverId) {
+		try {
+			const response = await fetch(`/api/mcp/servers/${serverId}/connect`, {
+				method: 'POST'
+			});
+
+			const result = await response.json();
+
+			if (response.ok) {
+				console.log(`Connected to server ${serverId}`);
+				if (result.tools) {
+					console.log('Available tools:', result.tools);
+
+					// Show and update tools panel
+					showMcpTools(result.tools);
+				}
+				return true;
+			} else {
+				alert(`Error connecting to server: ${result.error || 'Unknown error'}`);
+				return false;
+			}
+		} catch (e) {
+			alert(`Error connecting to server: ${e.message}`);
+			return false;
+		}
+	}
+
+   </script>
+        </div>
+</body>
+</html>

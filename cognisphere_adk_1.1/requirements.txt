@@ -1,0 +1,7 @@
+aiohttp~=3.9.3
+flask~=2.2.5
+pydantic~=1.10.12
+sympy~=1.12
+chromadb~=0.6.3
+python-dotenv~=0.21.0
+setuptools~=74.1.2
