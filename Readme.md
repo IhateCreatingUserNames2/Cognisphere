@@ -62,6 +62,7 @@ The UI provides features for managing sessions:
 - **Embedding Service** (`EmbeddingService`): Generates vector embeddings for semantic search
 - **Session Service** (`DatabaseSessionService`): Manages conversation sessions and state
 - **Identity Store** (`IdentityStore`): Handles identity creation and persistence
+![image](https://github.com/user-attachments/assets/8afc787e-cc62-4814-a1bd-f67bc9fcd7bb)
 
 ### Data Models
 
@@ -72,7 +73,11 @@ The UI provides features for managing sessions:
 ### Integration Capabilities
 
 - **MCP Integration**: Connects with Model Context Protocol servers for extended tools
+- ![image](https://github.com/user-attachments/assets/cea2372c-043c-475d-893c-1be74bf207c0)![image](https://github.com/user-attachments/assets/9e7432ab-5b53-4d2d-9a9d-44ffa7fedd1a)
+
+
 - **AIRA Network**: Enables discovery and communication with other AI agents
+![image](https://github.com/user-attachments/assets/c36fded1-adc0-4a91-9ae5-345f74888356)
 
 ## 🛠️ API Endpoints
 
