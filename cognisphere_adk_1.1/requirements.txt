@@ -1,7 +1,37 @@
-aiohttp~=3.9.3
-flask~=2.2.5
-pydantic~=1.10.12
-sympy~=1.12
-chromadb~=0.6.3
-python-dotenv~=0.21.0
-setuptools~=74.1.2
+# Cognisphere ADK Requirements
+# Core dependencies
+flask>=2.0.0
+google-adk>=0.0.2
+litellm>=0.1.4
+python-dotenv>=0.19.0
+requests>=2.27.1
+aiohttp>=3.8.1
+asyncio>=3.4.3
+pydantic>=1.9.0,<2.0.0
+sqlalchemy>=1.4.0
+sentence-transformers>=2.2.2
+chromadb>=0.4.6
+uuid>=1.30
+
+# Google API dependencies
+google-cloud-aiplatform>=1.25.0
+google-genai>=0.1.0
+
+# Database support
+sqlite3>=2.6.0
+
+# Embedding and model support
+torch>=1.12.0
+transformers>=4.21.0
+
+# MCP and AIRA integration
+mcp>=0.1.0
+
+# Web server and utilities
+gunicorn>=20.1.0
+Werkzeug>=2.0.0
+
+# Optional utilities for development
+pytest>=7.0.0
+black>=23.0.0
+flake8>=6.0.0
