@@ -1,5 +1,7 @@
 ![image](https://github.com/user-attachments/assets/c3feda1f-f341-46d7-ab45-5cd37600db22)
 # Cognisphere ADK: A Cognitive Architecture Framework
+
+Cur Version: https://github.com/IhateCreatingUserNames2/Cognisphere/tree/main/cognisphere_adk_1.1 
 ![image](https://github.com/user-attachments/assets/ad4dfd48-8c73-4b84-b30e-67ea8eb88390)
 
 
