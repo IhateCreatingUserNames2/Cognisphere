@@ -1,6 +1,9 @@
 # Cognisphere AIRA Integration
 
 AIRA REPO: https://github.com/IhateCreatingUserNames2/Aira
+
+Current working hub with cognisphere: 
+https://github.com/IhateCreatingUserNames2/Aira/blob/main/AiraHub_old_no_auth.py
 #
 AIRA (Agent Interoperability and Resource Access) enables AI agents built with different frameworks to discover and communicate with each other using a standardized protocol. It bridges the gap between the Agent-to-Agent (A2A) protocol and the Model Context Protocol (MCP) to create a unified ecosystem where AI tools and resources can be shared across different agent implementations.
 ![image](https://github.com/user-attachments/assets/afe4f278-968a-41b2-8a93-a6893b816465)
