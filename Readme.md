@@ -86,7 +86,7 @@ Refresh the Page to reload MCPServers. Sometimes it Fails. ***** It Only INSTALL
 -  read https://github.com/IhateCreatingUserNames2/Cognisphere/blob/main/mcp.md to know more
  
 
-![image](https://github.com/user-attachments/assets/51ec6007-1d4c-4237-848c-b5266a46985c)
+
 
 - ![image](https://github.com/user-attachments/assets/cea2372c-043c-475d-893c-1be74bf207c0)![image](https://github.com/user-attachments/assets/9e7432ab-5b53-4d2d-9a9d-44ffa7fedd1a)
 
