@@ -75,6 +75,19 @@ The UI provides features for managing sessions:
 ### Integration Capabilities
 
 - **MCP Integration**: Connects with Model Context Protocol servers for extended tools
+
+   -  how to add MCP Servers, take for example the Claude.Json configuration : 
+NPX
+{ "mcpServers": { "memory": { "command": "npx", "args": [ "-y", "@modelcontextprotocol/server-memory" ] } } }
+In the UI, add mcpServers, NPC, and -y,@modelcontextprotoco/server-memory .... 
+
+Refresh the Page to reload MCPServers. Sometimes it Fails. ***** It Only INSTALLS NPX SERVERS FOR NOW. 
+-  You can add more commands thru .../mcpIntegration/server_installer.py , mcp_shared_environment.py .... 
+-  read https://github.com/IhateCreatingUserNames2/Cognisphere/blob/main/mcp.md to know more
+ 
+
+![image](https://github.com/user-attachments/assets/51ec6007-1d4c-4237-848c-b5266a46985c)
+
 - ![image](https://github.com/user-attachments/assets/cea2372c-043c-475d-893c-1be74bf207c0)![image](https://github.com/user-attachments/assets/9e7432ab-5b53-4d2d-9a9d-44ffa7fedd1a)
 
 
