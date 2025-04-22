@@ -586,6 +586,7 @@ async def _process_message_async(user_id: str, session_id: str, message: str):
         full_sessions = []
         for sess_id in session_ids:
             if sess_id != session_id:  # Skip current session
+
                 try:
                     full_session = session_service.get_session(
                         app_name=app_name,
@@ -644,6 +645,12 @@ async def _process_message_async(user_id: str, session_id: str, message: str):
     # ------------------------------------------------------------------------
 
     session = ensure_session(user_id, session_id)
+    # Get API key from session if available, otherwise use the one from env
+    api_key = session.state.get('app:openrouter_api_key')
+    if api_key:
+        # Temporarily set the API key for this request
+        old_key = os.environ.get('OPENROUTER_API_KEY')
+        os.environ['OPENROUTER_API_KEY'] = api_key
 
     # Prepare message in ADK format
     content = types.Content(role="user", parts=[types.Part(text=message)])
@@ -697,6 +704,7 @@ async def _process_message_async(user_id: str, session_id: str, message: str):
                 final_response_text = part.text
             # -----------------------------------------------------------------
 
+
         # ... (fallback logic for final_response_text) ...
 
     except Exception as e:
@@ -704,6 +712,12 @@ async def _process_message_async(user_id: str, session_id: str, message: str):
         traceback.print_exc()  # Add this to see the full stack trace
         final_response_text = f"Error processing message: {e}"
 
+    finally:
+        # Restore original API key if we changed it
+        if api_key and old_key:
+            os.environ['OPENROUTER_API_KEY'] = old_key
+        elif api_key and not old_key:
+            del os.environ['OPENROUTER_API_KEY']
     # ---------------- Persistence & memory ---------------------
     try:
         # --- FIX STARTS HERE ---
@@ -742,6 +756,40 @@ async def _process_message_async(user_id: str, session_id: str, message: str):
 def index():
     """Render the main UI page."""
     return render_template('index.html')
+
+
+@app.route('/api/settings/update', methods=['POST'])
+def update_settings():
+    """Update application settings."""
+    data = request.json
+    api_key = data.get('openrouter_api_key')
+
+    if not api_key:
+        return jsonify({'error': 'API key is required'}), 400
+
+    try:
+        # Store API key in session state or app config
+        session = ensure_session(user_id='default_user', session_id='default_session')
+        session.state['app:openrouter_api_key'] = api_key
+
+        # Update litellm configuration
+        os.environ['OPENROUTER_API_KEY'] = api_key
+
+        # Test the API key
+        test_result = OpenRouterIntegration.test_connection()
+
+        if test_result.get('success'):
+            return jsonify({
+                'status': 'success',
+                'message': 'API key updated successfully'
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': f"API key validation failed: {test_result.get('error', 'Unknown error')}"
+            }), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/sessions/all', methods=['GET'])
