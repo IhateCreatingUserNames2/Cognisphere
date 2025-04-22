@@ -1,6 +1,4 @@
-Here's the formatted Markdown (MD) version of your document:
 
-```markdown
 # MemoryBlossom: A Multi-Memory System for AI Coherence
 
 ## Introduction
