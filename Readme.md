@@ -337,6 +337,9 @@ If chat history is not persisting between sessions:
 - Attachments
 - Artifacts
   
+## Added Stuff 
+ - 04.22 - OpenRouter API Key On the UI 
+![image](https://github.com/user-attachments/assets/55bd1543-876c-4e19-8bcf-da577b172bc3)
 
 
 ## 📝 Know Issues:
