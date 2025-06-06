@@ -340,12 +340,13 @@ If chat history is not persisting between sessions:
 - Better UI
 - Attachments
 - Artifacts
-  
+- Change to FASTAPI ( ONGOING) 
+
 ## Added Stuff 
  - 04.22 - OpenRouter API Key On the UI 
 ![image](https://github.com/user-attachments/assets/55bd1543-876c-4e19-8bcf-da577b172bc3)
 
- 0 06.06 - ### 1. Dynamic Agent Orchestration (Interim Approach)  https://github.com/IhateCreatingUserNames2/Cognisphere/tree/main/DynamicAOR 
+ - 06.06 - ### 1. Dynamic Agent Orchestration (Interim Approach)  https://github.com/IhateCreatingUserNames2/Cognisphere/tree/main/DynamicAOR 
 
 ## 📝 Know Issues:
 - Async issues
@@ -353,3 +354,6 @@ If chat history is not persisting between sessions:
 - MCP sometimes fails
 - AiraHub Needs to be Updated for auth or use the old AiraHub code. 
 - Invalid Date in Sessions
+
+
+
