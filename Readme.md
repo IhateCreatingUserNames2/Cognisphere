@@ -5,7 +5,7 @@ Current Version: https://github.com/IhateCreatingUserNames2/Cognisphere/tree/mai
 
 ** Cognisphere is ahead of the curve: https://arxiv.org/pdf/2506.01804
 
-
+Changelog : https://github.com/IhateCreatingUserNames2/Cognisphere?tab=readme-ov-file#added-stuff 
 
 How to Edit, Workflows, More technical Report: https://github.com/IhateCreatingUserNames2/Cognisphere/blob/main/cognisphere_how_to_edit.md 
 
