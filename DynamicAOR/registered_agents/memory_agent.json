@@ -1,0 +1,10 @@
+{
+  "agent_id": "memory-agent-uuid",
+  "name": "MemoryAgent",
+  "description": "Specialized agent for memory storage and retrieval operations.",
+  "capabilities": ["memory recall", "store information", "remember facts", "recall memory", "save memory"],
+  "module_path": "agents.memory_agent",
+  "creation_function": "create_memory_agent",
+  "default_model": "openai/gpt-4o-mini",
+  "initial_instruction_prompt": "You are the Memory Agent. Your role is to manage the storage and retrieval of memories. Respond factually."
+}
