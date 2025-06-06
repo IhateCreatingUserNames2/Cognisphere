@@ -345,6 +345,7 @@ If chat history is not persisting between sessions:
  - 04.22 - OpenRouter API Key On the UI 
 ![image](https://github.com/user-attachments/assets/55bd1543-876c-4e19-8bcf-da577b172bc3)
 
+ 0 06.06 - ### 1. Dynamic Agent Orchestration (Interim Approach)  https://github.com/IhateCreatingUserNames2/Cognisphere/tree/main/DynamicAOR 
 
 ## 📝 Know Issues:
 - Async issues
