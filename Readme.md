@@ -3,6 +3,10 @@
 
 Current Version: https://github.com/IhateCreatingUserNames2/Cognisphere/tree/main/cognisphere_adk_1.1 
 
+** Cognisphere is ahead of the curve: https://arxiv.org/pdf/2506.01804
+
+
+
 How to Edit, Workflows, More technical Report: https://github.com/IhateCreatingUserNames2/Cognisphere/blob/main/cognisphere_how_to_edit.md 
 
 Cognisphere is an advanced cognitive architecture built with Google's Agent Development Kit (ADK). It features sophisticated memory, narrative, and identity capabilities, allowing for context-aware conversations with persistent state across sessions.
